@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aristopharma WC2026 Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden}
+body{
+  font-family:'Exo 2',sans-serif;
+  background:#080b12;
+  color:#fff;
+  height:100%;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ── SCANLINES + GRID BG ── */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:
+    repeating-linear-gradient(0deg,rgba(0,255,128,0.015) 0px,rgba(0,255,128,0.015) 1px,transparent 1px,transparent 60px),
+    repeating-linear-gradient(90deg,rgba(0,255,128,0.015) 0px,rgba(0,255,128,0.015) 1px,transparent 1px,transparent 60px);
+  pointer-events:none;
+}
+#bg::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,transparent 1px,transparent 3px);
+  pointer-events:none;
+}
+
+/* ── PARTICLE CANVAS ── */
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ── APP SHELL ── */
+#app{
+  position:relative;z-index:10;
+  height:100vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  max-width:480px;
+  margin:0 auto;
+}
+
+/* ── HUD TOP BAR ── */
+#hud{
+  flex-shrink:0;
+  padding:14px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(0,255,128,0.12);
+  background:rgba(8,11,18,0.9);
+}
+.hud-logo{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:700;
+  color:#00ff80;letter-spacing:0.15em;
+  text-transform:uppercase;
+  line-height:1.2;
+}
+.hud-logo span{color:rgba(255,255,255,0.35);font-weight:400}
+.hud-lives{display:flex;gap:4px;align-items:center}
+.life-dot{width:10px;height:10px;border-radius:50%;background:#00ff80;box-shadow:0 0 6px #00ff8088}
+.life-dot.lost{background:#1a2a1a;box-shadow:none}
+#hud-score{
+  font-family:'Orbitron',sans-serif;
+  font-size:14px;font-weight:700;
+  color:#ffd700;
+  letter-spacing:0.05em;
+  text-shadow:0 0 10px #ffd70088;
+}
+
+/* ── XP BAR ── */
+#xpbar-wrap{
+  flex-shrink:0;
+  padding:6px 16px 8px;
+  background:rgba(8,11,18,0.9);
+  border-bottom:1px solid rgba(0,255,128,0.08);
+}
+.xpbar-label{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:rgba(255,255,255,0.35);
+  font-family:'Orbitron',sans-serif;letter-spacing:0.08em;
+  margin-bottom:4px;
+}
+#xpbar-track{
+  height:4px;background:rgba(255,255,255,0.08);
+  border-radius:2px;overflow:hidden;
+}
+#xpbar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,#00ff80,#00ccff);
+  border-radius:2px;
+  transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ── MAIN STAGE ── */
+#stage{
+  flex:1;
+  overflow:hidden;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── SCREEN SYSTEM ── */
+.screen{
+  position:absolute;inset:0;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:20px 16px;
+  animation:screenIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.screen.active{display:flex}
+@keyframes screenIn{
+  from{opacity:0;transform:scale(0.92) translateY(16px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes screenOut{
+  from{opacity:1;transform:scale(1)}
+  to{opacity:0;transform:scale(1.06)}
+}
+
+/* ── SPLASH SCREEN ── */
+#splash{justify-content:flex-start;padding-top:30px}
+.splash-trophy{
+  font-size:64px;margin-bottom:4px;
+  animation:float 3s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+.splash-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:30px;font-weight:900;
+  color:#fff;letter-spacing:-0.01em;
+  text-align:center;line-height:1;
+  margin-bottom:4px;
+}
+.splash-title .highlight{color:#00ff80;text-shadow:0 0 20px #00ff8066}
+.splash-year{
+  font-family:'Orbitron',sans-serif;
+  font-size:54px;font-weight:900;
+  color:transparent;
+  -webkit-text-stroke:2px rgba(0,255,128,0.4);
+  line-height:1;margin-bottom:8px;
+}
+.splash-by{
+  font-size:12px;color:rgba(255,255,255,0.4);
+  letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:24px;
+}
+.prizes-row{
+  display:flex;gap:6px;width:100%;margin-bottom:24px;overflow-x:auto;
+  padding-bottom:4px;scrollbar-width:none;
+}
+.prizes-row::-webkit-scrollbar{display:none}
+.prize-card{
+  flex:0 0 auto;
+  background:rgba(255,215,0,0.05);
+  border:1px solid rgba(255,215,0,0.2);
+  border-radius:12px;
+  padding:10px 12px;
+  text-align:center;
+  min-width:100px;
+}
+.prize-rank{font-size:9px;color:#ffd700;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.prize-name{font-size:11px;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.3}
+.info-strip{
+  width:100%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:12px;
+  color:rgba(255,255,255,0.5);
+  line-height:1.6;
+  margin-bottom:20px;
+}
+.info-strip strong{color:rgba(0,255,128,0.8)}
+.btn-start{
+  width:100%;
+  padding:18px;
+  background:#00ff80;
+  border:none;
+  border-radius:16px;
+  font-family:'Orbitron',sans-serif;
+  font-size:16px;font-weight:700;
+  color:#080b12;
+  cursor:pointer;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  transition:transform 0.1s,box-shadow 0.2s;
+  box-shadow:0 0 30px #00ff8044;
+}
+.btn-start:active{transform:scale(0.97)}
+
+/* ── QUESTION SCREEN ── */
+#qscreen{
+  justify-content:flex-start;
+  padding:0 16px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  gap:0;
+  align-items:stretch;
+}
+#qscreen::-webkit-scrollbar{display:none}
+.q-section-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(0,204,255,0.1);
+  border:1px solid rgba(0,204,255,0.25);
+  border-radius:6px;
+  padding:4px 10px;
+  font-size:10px;
+  color:#00ccff;
+  font-family:'Orbitron',sans-serif;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin:16px 0 10px;
+  align-self:flex-start;
+}
+.q-number-badge{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:10px;
+}
+.q-num-label{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;color:rgba(255,255,255,0.3);
+  letter-spacing:0.12em;
+}
+.q-num-value{
+  font-family:'Orbitron',sans-serif;
+  font-size:22px;font-weight:900;
+  color:#fff;letter-spacing:-0.02em;
+}
+.q-num-total{
+  font-family:'Orbitron',sans-serif;
+  font-size:13px;color:rgba(255,255,255,0.25);
+}
+.q-text{
+  font-size:18px;font-weight:600;
+  color:#fff;line-height:1.4;
+  margin-bottom:6px;
+}
+.q-hint{
+  font-size:12px;color:rgba(255,255,255,0.4);
+  margin-bottom:18px;line-height:1.4;
+}
+.game-input{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  padding:16px;
+  font-size:16px;
+  font-family:'Exo 2',sans-serif;
+  color:#fff;
+  outline:none;
+  transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+  -webkit-appearance:none;
+  caret-color:#00ff80;
+  margin-bottom:8px;
+}
+.game-input:focus{
+  border-color:#00ff80;
+  background:rgba(0,255,128,0.04);
+  box-shadow:0 0 0 3px rgba(0,255,128,0.1);
+}
+.game-input::placeholder{color:rgba(255,255,255,0.2)}
+.game-input.filled{border-color:rgba(0,255,128,0.5);background:rgba(0,255,128,0.04)}
+.game-input.error{border-color:rgba(255,60,60,0.6);animation:shake 0.3s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+
+/* ── DROPDOWN GAME STYLE ── */
+.dd-btn{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  padding:16px;
+  font-size:15px;
+  font-family:'Exo 2',sans-serif;
+  color:rgba(255,255,255,0.4);
+  outline:none;
+  cursor:pointer;
+  text-align:left;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:border-color 0.2s;
+  margin-bottom:8px;
+}
+.dd-btn.selected{
+  color:#fff;
+  border-color:rgba(0,255,128,0.5);
+  background:rgba(0,255,128,0.04);
+}
+.dd-btn .flag{font-size:20px;margin-right:8px}
+.dd-chevron{color:rgba(255,255,255,0.3);font-size:16px;transition:transform 0.2s;flex-shrink:0}
+.dd-btn.open .dd-chevron{transform:rotate(180deg)}
+
+.dd-panel{
+  width:100%;
+  background:#101620;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:12px;
+  animation:dropIn 0.2s ease both;
+  max-height:260px;
+  display:flex;flex-direction:column;
+}
+@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.dd-search-wrap{padding:10px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0}
+.dd-search{
+  width:100%;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:9px 12px;
+  font-size:13px;
+  font-family:'Exo 2',sans-serif;
+  color:#fff;outline:none;
+  caret-color:#00ff80;
+}
+.dd-search::placeholder{color:rgba(255,255,255,0.25)}
+.dd-scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.dd-scroll::-webkit-scrollbar{width:3px}
+.dd-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+.dd-option{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;
+  font-size:14px;color:rgba(255,255,255,0.8);
+  cursor:pointer;
+  transition:background 0.12s;
+}
+.dd-option:hover,.dd-option:active{background:rgba(0,255,128,0.07)}
+.dd-option.chosen{background:rgba(0,255,128,0.1);color:#00ff80;font-weight:600}
+.dd-option .oflag{font-size:20px}
+.dd-empty{padding:16px;text-align:center;font-size:13px;color:rgba(255,255,255,0.25)}
+
+/* ── NAV BUTTONS ── */
+.nav-row{
+  display:flex;gap:10px;
+  padding:14px 16px 20px;
+  flex-shrink:0;
+  background:rgba(8,11,18,0.95);
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.btn-back{
+  flex:0 0 52px;height:52px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;
+  color:rgba(255,255,255,0.5);
+  font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+}
+.btn-back:active{background:rgba(255,255,255,0.12)}
+.btn-next{
+  flex:1;height:52px;
+  background:#00ff80;
+  border:none;border-radius:12px;
+  font-family:'Orbitron',sans-serif;
+  font-size:13px;font-weight:700;
+  color:#080b12;
+  cursor:pointer;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform 0.1s,opacity 0.2s;
+  box-shadow:0 4px 20px rgba(0,255,128,0.3);
+}
+.btn-next:active{transform:scale(0.97)}
+.btn-next.disabled{background:#1a2a1a;color:rgba(255,255,255,0.2);box-shadow:none;cursor:default}
+.btn-next .arrow{font-size:18px}
+
+/* ── FEEDBACK OVERLAY ── */
+#feedback{
+  position:fixed;inset:0;z-index:50;
+  display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.7);
+  animation:fadeIn 0.15s ease;
+}
+#feedback.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.feedback-box{
+  text-align:center;
+  animation:popUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes popUp{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.feedback-icon{font-size:72px;margin-bottom:12px;display:block}
+.feedback-msg{
+  font-family:'Orbitron',sans-serif;
+  font-size:20px;font-weight:700;letter-spacing:0.05em;
+  margin-bottom:4px;
+}
+.feedback-msg.ok{color:#00ff80;text-shadow:0 0 20px #00ff8066}
+.feedback-msg.skip{color:#ffd700;text-shadow:0 0 20px #ffd70066}
+.feedback-sub{font-size:13px;color:rgba(255,255,255,0.5)}
+.xp-gain{
+  font-family:'Orbitron',sans-serif;
+  font-size:14px;color:#00ccff;
+  margin-top:8px;letter-spacing:0.05em;
+}
+
+/* ── RESULTS SCREEN ── */
+#results{gap:0;justify-content:flex-start;padding-top:20px;overflow-y:auto}
+#results::-webkit-scrollbar{display:none}
+.results-header{text-align:center;margin-bottom:20px;width:100%}
+.results-trophy{font-size:64px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:8px}
+.results-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:22px;font-weight:900;color:#ffd700;
+  text-shadow:0 0 20px #ffd70066;
+  letter-spacing:0.05em;margin-bottom:4px;
+}
+.results-sub{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5}
+.score-display{
+  width:100%;
+  background:rgba(255,215,0,0.06);
+  border:1px solid rgba(255,215,0,0.2);
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  margin-bottom:14px;
+}
+.score-big{
+  font-family:'Orbitron',sans-serif;
+  font-size:56px;font-weight:900;
+  color:#ffd700;text-shadow:0 0 30px #ffd70066;
+  line-height:1;
+}
+.score-label{font-size:12px;color:rgba(255,215,0,0.5);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
+.stat-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:14px;
+}
+.stat-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;padding:14px;text-align:center;
+}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;color:#00ff80;margin-bottom:4px}
+.stat-lbl{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase}
+.prize-reveal{
+  width:100%;
+  background:rgba(0,255,128,0.05);
+  border:1px solid rgba(0,255,128,0.2);
+  border-radius:14px;padding:16px;margin-bottom:16px;
+  text-align:center;
+}
+.prize-reveal-label{font-size:11px;color:rgba(0,255,128,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.prize-reveal-items{display:flex;flex-direction:column;gap:6px}
+.prize-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;
+}
+.prize-item-rank{
+  font-family:'Orbitron',sans-serif;font-size:10px;
+  color:#ffd700;min-width:60px;font-weight:700;
+}
+.prize-item-name{font-size:13px;color:rgba(255,255,255,0.8)}
+.deadline-note{
+  width:100%;
+  background:rgba(255,100,0,0.06);border:1px solid rgba(255,100,0,0.2);
+  border-radius:12px;padding:12px 14px;
+  font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;
+  margin-bottom:80px;text-align:center;
+}
+.deadline-note strong{color:rgba(255,150,50,0.9)}
+
+/* ── SECTION TRANSITION ── */
+.section-break{
+  width:100%;
+  background:rgba(0,204,255,0.04);
+  border:1px solid rgba(0,204,255,0.15);
+  border-radius:14px;padding:16px;
+  text-align:center;margin:10px 0 4px;
+}
+.section-break-icon{font-size:32px;margin-bottom:6px;display:block}
+.section-break-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:16px;font-weight:700;color:#00ccff;
+  letter-spacing:0.05em;margin-bottom:4px;
+}
+.section-break-sub{font-size:12px;color:rgba(255,255,255,0.4)}
+
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<canvas id="particles"></canvas>
+
+<div id="gating-screen" class="screen" style="z-index: 100; background: #080b12; justify-content: center; text-align: center;">
+  <div class="splash-trophy" style="font-size: 80px; animation: none; margin-bottom: 20px;">🔒</div>
+  <div class="splash-title" style="font-size: 24px; color: #ff4466; text-shadow: 0 0 20px #ff446666;">CHALLENGE LOCKED</div>
+  <div class="info-strip" style="max-width: 300px; margin: 20px auto; background: rgba(255, 68, 102, 0.05); border-color: rgba(255, 68, 102, 0.2);">
+    The Aristopharma World Cup 2026 Challenge is currently closed. Please wait for the official kickoff!
+  </div>
+</div>
+
+<div id="app" style="display: none;">
+  <div id="hud">
+    <div>
+      <div class="hud-logo">Aristopharma<br><span>WC 2026 Challenge</span></div>
+    </div>
+    <div id="hud-score">0 XP</div>
+    <div class="hud-lives" id="hud-lives">
+      <div class="life-dot" id="l1"></div>
+      <div class="life-dot" id="l2"></div>
+      <div class="life-dot" id="l3"></div>
+    </div>
+  </div>
+  <div id="xpbar-wrap">
+    <div class="xpbar-label">
+      <span id="xp-level">LEVEL 1</span>
+      <span id="xp-pct">0 / 16 COMPLETE</span>
+    </div>
+    <div id="xpbar-track"><div id="xpbar-fill"></div></div>
+  </div>
+
+  <div id="stage">
+
+    <div class="screen active" id="splash">
+      <div class="splash-trophy">⚽</div>
+      <div class="splash-title">WORLD CUP<br><span class="highlight">CHALLENGE</span></div>
+      <div class="splash-year">2026</div>
+      <div class="splash-by">POWERED BY ARISTOPHARMA</div>
+      <div class="prizes-row">
+        <div class="prize-card"><div class="prize-rank">🥇 1ST</div><div class="prize-name">iPhone Air</div></div>
+        <div class="prize-card"><div class="prize-rank">🥈 2ND</div><div class="prize-name">Dhaka–Kathmandu (2 pax)</div></div>
+        <div class="prize-card"><div class="prize-rank">🥉 3RD</div><div class="prize-name">Samsung Galaxy</div></div>
+        <div class="prize-card"><div class="prize-rank">🏅 4–20TH</div><div class="prize-name">25,000 TK Cash</div></div>
+      </div>
+      <div class="info-strip">
+        <strong>Deadline:</strong> 12 June – 12 July 2026 &nbsp;·&nbsp;
+        <strong>Eligibility:</strong> Bangladesh-based doctors only &nbsp;·&nbsp;
+        One submission per doctor
+      </div>
+      <button class="btn-start" onclick="startGame()">▶ &nbsp; START CHALLENGE</button>
+    </div>
+
+    <div class="screen" id="qscreen"></div>
+
+    <div class="screen" id="results">
+      <div class="results-header">
+        <span class="results-trophy">🏆</span>
+        <div class="results-title">MISSION COMPLETE!</div>
+        <div class="results-sub">Your entry has been submitted.<br>Winners announced after the Final.</div>
+      </div>
+      <div class="score-display">
+        <div class="score-big" id="final-score">0</div>
+        <div class="score-label">Total XP Earned</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-val" id="stat-answered">0</div><div class="stat-lbl">Questions Answered</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-pct">0%</div><div class="stat-lbl">Completion</div></div>
+      </div>
+      <div class="prize-reveal">
+        <div class="prize-reveal-label">🏆 Grand Prizes</div>
+        <div class="prize-reveal-items">
+          <div class="prize-item"><div class="prize-item-rank">🥇 1ST PRIZE</div><div class="prize-item-name">iPhone Air</div></div>
+          <div class="prize-item"><div class="prize-item-rank">🥈 2ND PRIZE</div><div class="prize-item-name">Dhaka – Kathmandu Air Tickets (2 persons)</div></div>
+          <div class="prize-item"><div class="prize-item-rank">🥉 3RD PRIZE</div><div class="prize-item-name">Samsung Galaxy Smart Phone</div></div>
+          <div class="prize-item"><div class="prize-item-rank">🏅 4TH–20TH</div><div class="prize-item-name">25,000 TK Cash per winner</div></div>
+        </div>
+      </div>
+      <div class="deadline-note">
+        <strong>Submissions open 12 June – 12 July 2026</strong><br>
+        Your current medical practice must be based in Bangladesh.<br>
+        Only one submission per doctor will be counted.
+      </div>
+    </div>
+
+  </div><div class="nav-row" id="nav-row" style="display:none">
+    <button class="btn-back" id="btn-back" onclick="prevQ()">←</button>
+    <button class="btn-next" id="btn-next" onclick="nextQ()">
+      <span id="btn-next-label">NEXT</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>
+
+<div id="feedback">
+  <div class="feedback-box">
+    <span class="feedback-icon" id="fb-icon"></span>
+    <div class="feedback-msg" id="fb-msg"></div>
+    <div class="feedback-sub" id="fb-sub"></div>
+    <div class="xp-gain" id="fb-xp"></div>
+  </div>
+</div>
+
+<script>
+// ── GATING SYSTEM: THIS IS WHERE YOUR URL LIVES ──
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6H1CoRyijpxzVE7T3ifCaWPpt1cSiyr-sqAUywqfz9vvgMz0oMtq4-l3E1Wt2-AeWWA/exec";
+
+async function checkStatus() {
+  try {
+    const response = await fetch(APPS_SCRIPT_URL);
+    const data = await response.json();
+    
+    if (data.status === "LIVE") {
+      document.getElementById('gating-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+    } else {
+      document.getElementById('gating-screen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+  } catch (error) {
+    console.error("Status check failed:", error);
+    // Failsafe: If script fails, show locked screen
+    document.getElementById('gating-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+}
+
+// Run check on page load
+checkStatus();
+
+const COUNTRIES=[
+  {n:'Algeria',f:'🇩🇿'},{n:'Argentina',f:'🇦🇷'},{n:'Australia',f:'🇦🇺'},
+  {n:'Austria',f:'🇦🇹'},{n:'Belgium',f:'🇧🇪'},{n:'Bosnia and Herzegovina',f:'🇧🇦'},
+  {n:'Brazil',f:'🇧🇷'},{n:'Canada',f:'🇨🇦'},{n:'Cape Verde',f:'🇨🇻'},
+  {n:'Colombia',f:'🇨🇴'},{n:'Congo DR',f:'🇨🇩'},{n:'Croatia',f:'🇭🇷'},
+  {n:'Curaçao',f:'🇨🇼'},{n:'Czechia',f:'🇨🇿'},{n:'Ecuador',f:'🇪🇨'},
+  {n:'Egypt',f:'🇪🇬'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'France',f:'🇫🇷'},
+  {n:'Germany',f:'🇩🇪'},{n:'Ghana',f:'🇬🇭'},{n:'Haiti',f:'🇭🇹'},
+  {n:'Iran',f:'🇮🇷'},{n:'Iraq',f:'🇮🇶'},{n:'Ivory Coast',f:'🇨🇮'},
+  {n:'Japan',f:'🇯🇵'},{n:'Jordan',f:'🇯🇴'},{n:'Mexico',f:'🇲🇽'},
+  {n:'Morocco',f:'🇲🇦'},{n:'Netherlands',f:'🇳🇱'},{n:'New Zealand',f:'🇳🇿'},
+  {n:'Norway',f:'🇳🇴'},{n:'Panama',f:'🇵🇦'},{n:'Paraguay',f:'🇵🇾'},
+  {n:'Portugal',f:'🇵🇹'},{n:'Qatar',f:'🇶🇦'},{n:'Saudi Arabia',f:'🇸🇦'},
+  {n:'Scotland',f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{n:'Senegal',f:'🇸🇳'},{n:'South Africa',f:'🇿🇦'},
+  {n:'South Korea',f:'🇰🇷'},{n:'Spain',f:'🇪🇸'},{n:'Sweden',f:'🇸🇪'},
+  {n:'Switzerland',f:'🇨🇭'},{n:'Tunisia',f:'🇹🇳'},{n:'Türkiye',f:'🇹🇷'},
+  {n:'United States',f:'🇺🇸'},{n:'Uruguay',f:'🇺🇾'},{n:'Uzbekistan',f:'🇺🇿'}
+];
+
+const QUESTIONS=[
+  {id:'q1',section:'🩺 Doctor Info',type:'email',label:'Email Address',hint:'Your contact email',placeholder:'doctor@example.com',xp:50,required:true},
+  {id:'q2',section:null,type:'text',label:'Full Name',hint:'',placeholder:'Dr. Full Name',xp:50,required:true},
+  {id:'q3',section:null,type:'text',label:'BM&DC Registration Number',hint:'Mandatory for verification',placeholder:'e.g. A-12345',xp:100,required:true},
+  {id:'q4',section:null,type:'tel',label:'Mobile Number',hint:'11-digit number (e.g. 01812233447)',placeholder:'01XXXXXXXXX',xp:50,required:true},
+  {id:'q5',section:null,type:'text',label:'Specialty',hint:'Your medical specialty',placeholder:'e.g. Cardiology, Medicine',xp:50,required:true},
+  {id:'q6',section:null,type:'text',label:'Hospital / Chamber Address',hint:'Must be located within Bangladesh',placeholder:'Hospital name, District',xp:50,required:true},
+  {id:'q7',section:'⚽ Predictions',type:'dropdown',label:'Who Will Be Crowned the 2026 FIFA World Cup Champion?',hint:'Select the winner',xp:200,required:true},
+  {id:'q8',section:null,type:'dropdown',label:'Who will be the Runner-Up at the 2026 FIFA World Cup Final?',hint:'Select the runner-up',xp:200,required:true},
+  {id:'q9',section:null,type:'text',label:'Golden Ball Winner',hint:'Best Player — write full name',placeholder:'e.g. Lionel Messi',xp:150,required:true},
+  {id:'q10',section:null,type:'text',label:'Golden Boot Winner',hint:'Top Goalscorer — write full name',placeholder:'e.g. Kylian Mbappé',xp:150,required:true},
+  {id:'q11',section:null,type:'text',label:'Golden Glove Winner',hint:'Best Goalkeeper — write full name',placeholder:'e.g. Manuel Neuer',xp:150,required:true},
+  {id:'q12',section:'💊 Brand Quiz',type:'text',label:"Aristopharma's Rabeprazole brand name?",hint:'',placeholder:'Brand name',xp:100,required:true},
+  {id:'q13',section:null,type:'text',label:'Preferred Aristopharma brand to treat GERD?',hint:'',placeholder:'Brand name',xp:100,required:true},
+  {id:'q14',section:null,type:'text',label:'Aristopharma brand — monarch of all antihistamines?',hint:'',placeholder:'Brand name',xp:100,required:true},
+  {id:'q15',section:null,type:'text',label:'Pioneer lactulose brand in Bangladesh since 1997?',hint:'',placeholder:'Brand name',xp:100,required:true},
+  {id:'q16',section:null,type:'text',label:"Aristopharma's latest xanthine derivative for Asthma & COPD?",hint:'',placeholder:'Brand name',xp:100,required:true},
+];
+
+let answers={};
+let xp=0;
+let current=0;
+let ddOpen=null;
+
+function setScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='gating-screen') {s.classList.remove('active');s.style.display='none'}});
+  const s=document.getElementById(id);
+  if(s) {
+    s.style.display='flex';
+    requestAnimationFrame(()=>s.classList.add('active'));
+  }
+}
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=xp+' XP';
+  const done=Object.keys(answers).filter(k=>answers[k]).length;
+  const pct=Math.round(done/QUESTIONS.length*100);
+  document.getElementById('xpbar-fill').style.width=pct+'%';
+  document.getElementById('xp-pct').textContent=done+' / '+QUESTIONS.length+' COMPLETE';
+  const level=Math.floor(done/4)+1;
+  document.getElementById('xp-level').textContent='LEVEL '+level;
+}
+
+function startGame(){
+  document.getElementById('nav-row').style.display='flex';
+  setScreen('qscreen');
+  renderQ(0);
+}
+
+function renderQ(idx){
+  current=idx;
+  const q=QUESTIONS[idx];
+  const stage=document.getElementById('qscreen');
+  stage.scrollTop=0;
+
+  let html='';
+
+  if(q.section){
+    html+=`<div class="q-section-tag">${q.section}</div>`;
+  }
+
+  html+=`
+    <div class="q-number-badge">
+      <span class="q-num-label">QUESTION</span>
+      <span class="q-num-value">${String(idx+1).padStart(2,'0')}</span>
+      <span class="q-num-total">/ 16</span>
+    </div>
+    <div class="q-text">${q.label}</div>
+  `;
+  if(q.hint) html+=`<div class="q-hint">${q.hint}</div>`;
+  else html+=`<div style="margin-bottom:14px"></div>`;
+
+  const val=answers[q.id]||'';
+
+  if(q.type==='dropdown'){
+    const chosen=COUNTRIES.find(c=>c.n===val);
+    html+=`
+      <button class="dd-btn ${val?'selected':''}" id="dd-btn-${q.id}" onclick="toggleDD('${q.id}')">
+        <span>${val?(chosen?chosen.f+' ':'')+val:'Select a country…'}</span>
+        <span class="dd-chevron">▾</span>
+      </button>
+      <div class="dd-panel" id="dd-panel-${q.id}" style="display:none">
+        <div class="dd-search-wrap">
+          <input class="dd-search" id="dd-search-${q.id}" placeholder="Search country…" oninput="filterDD('${q.id}',this.value)">
+        </div>
+        <div class="dd-scroll" id="dd-list-${q.id}">
+          ${COUNTRIES.map(c=>`
+            <div class="dd-option ${c.n===val?'chosen':''}" onclick="selectDD('${q.id}','${c.n}','${c.f}')">
+              <span class="oflag">${c.f}</span><span>${c.n}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    html+=`<input type="${q.type}" class="game-input ${val?'filled':''}" id="input-${q.id}"
+      placeholder="${q.placeholder}" value="${val}"
+      autocomplete="${q.type==='email'?'email':q.type==='tel'?'tel':'off'}"
+      inputmode="${q.type==='tel'?'tel':q.type==='email'?'email':'text'}"
+      ${q.id==='q4'?'maxlength="11"':''}
+      oninput="onInput('${q.id}',this.value)"
+      onkeydown="if(event.key==='Enter')nextQ()">`;
+  }
+
+  html+=`<div style="height:80px"></div>`;
+
+  stage.innerHTML=html;
+
+  const nb=document.getElementById('btn-next');
+  nb.classList.toggle('disabled',q.required&&!val);
+  document.getElementById('btn-next-label').textContent=idx===QUESTIONS.length-1?'SUBMIT':'NEXT';
+  document.getElementById('btn-back').style.opacity=idx===0?'0.3':'1';
+
+  if(q.type!=='dropdown'){
+    setTimeout(()=>{const el=document.getElementById('input-'+q.id);if(el)el.focus();},100);
+  }
+}
+
+function onInput(id,val){
+  answers[id]=val.trim();
+  const q=QUESTIONS.find(q=>q.id===id);
+  const el=document.getElementById('input-'+id);
+  if(val.trim()){el.classList.add('filled');el.classList.remove('error');}
+  else el.classList.remove('filled');
+  const nb=document.getElementById('btn-next');
+  nb.classList.toggle('disabled',q.required&&!val.trim());
+  updateHUD();
+}
+
+function toggleDD(id){
+  const panel=document.getElementById('dd-panel-'+id);
+  const btn=document.getElementById('dd-btn-'+id);
+  const isOpen=panel.style.display!=='none';
+  if(isOpen){panel.style.display='none';btn.classList.remove('open');}
+  else{
+    panel.style.display='flex';btn.classList.add('open');
+    setTimeout(()=>{const s=document.getElementById('dd-search-'+id);if(s)s.focus();},100);
+  }
+}
+
+function filterDD(id,query){
+  const q=query.toLowerCase();
+  const list=document.getElementById('dd-list-'+id);
+  let found=0;
+  list.querySelectorAll('.dd-option').forEach(opt=>{
+    const show=opt.textContent.toLowerCase().includes(q);
+    opt.style.display=show?'flex':'none';
+    if(show)found++;
+  });
+  let empty=document.getElementById('dd-empty-'+id);
+  if(!found){
+    if(!empty){empty=document.createElement('div');empty.id='dd-empty-'+id;empty.className='dd-empty';empty.textContent='No results';list.appendChild(empty);}
+  } else if(empty)empty.remove();
+}
+
+function selectDD(id,name,flag){
+  answers[id]=name;
+  const btn=document.getElementById('dd-btn-'+id);
+  btn.querySelector('span').textContent=flag+' '+name;
+  btn.classList.add('selected');
+  const panel=document.getElementById('dd-panel-'+id);
+  panel.style.display='none';
+  btn.classList.remove('open');
+  document.getElementById('btn-next').classList.remove('disabled');
+  document.getElementById('dd-list-'+id).querySelectorAll('.dd-option').forEach(o=>{
+    o.classList.toggle('chosen',o.querySelector('span:last-child').textContent===name);
+  });
+  updateHUD();
+}
+
+function validate(idx){
+  const q=QUESTIONS[idx];
+  const val=answers[q.id]||'';
+  if(!q.required)return true;
+  if(!val)return false;
+  if(q.id==='q1'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))return false;
+  if(q.id==='q4'&&!/^01[3-9]\d{8}$/.test(val))return false;
+  return true;
+}
+
+function showFeedback(ok,qxp,cb){
+  const fb=document.getElementById('feedback');
+  document.getElementById('fb-icon').textContent=ok?'✅':'⚠️';
+  document.getElementById('fb-msg').textContent=ok?'LOCKED IN!':'INVALID INPUT';
+  document.getElementById('fb-msg').className='feedback-msg '+(ok?'ok':'skip');
+  document.getElementById('fb-sub').textContent=ok?'Great answer!':'Please check your input.';
+  document.getElementById('fb-xp').textContent=ok?'+ '+qxp+' XP':'';
+  fb.classList.add('show');
+  setTimeout(()=>{fb.classList.remove('show');cb();},900);
+}
+
+function nextQ(){
+  const nb=document.getElementById('btn-next');
+  if(nb.classList.contains('disabled'))return;
+  const q=QUESTIONS[current];
+  const ok=validate(current);
+  if(!ok){
+    const el=document.getElementById('input-'+q.id);
+    if(el){el.classList.add('error');setTimeout(()=>el.classList.remove('error'),600);}
+    return;
+  }
+  if(answers[q.id]&&!q._xpGiven){
+    xp+=q.xp;q._xpGiven=true;
+  }
+  updateHUD();
+  if(current===QUESTIONS.length-1){
+    showFeedback(true,q.xp,()=>{
+      showResults();
+    });
+    return;
+  }
+  showFeedback(true,q.xp,()=>{
+    renderQ(current+1);
+  });
+}
+
+function prevQ(){
+  if(current===0)return;
+  renderQ(current-1);
+}
+
+// ── Google Form Submission Integration ── //
+function submitData() {
+  const url = "https://docs.google.com/forms/d/e/1FAIpQLSdSIxH8DP0kESJy91P-ALEmKlCVDevHbQHTLL0GgKg0mfacGw/formResponse";
+  const formData = new URLSearchParams();
+  
+  // Mapping UI Answers to the extracted Google Form Entry IDs
+  formData.append("emailAddress", answers['q1'] || "");
+  formData.append("entry.2038918538", answers['q2'] || ""); // Full Name
+  formData.append("entry.1331120625", answers['q3'] || ""); // BM&DC
+  formData.append("entry.1906868355", answers['q4'] || ""); // Mobile Number
+  formData.append("entry.435087459", answers['q5'] || "");  // Specialty
+  formData.append("entry.39175090", answers['q6'] || "");   // Hospital / Chamber
+  formData.append("entry.1028554198", answers['q7'] || ""); // Champion
+  formData.append("entry.1135703577", answers['q8'] || ""); // Runner-Up
+  formData.append("entry.499870340", answers['q9'] || "");  // Golden Ball
+  formData.append("entry.1773681107", answers['q10'] || "");// Golden Boot
+  formData.append("entry.256639077", answers['q11'] || ""); // Golden Glove
+  formData.append("entry.535845153", answers['q12'] || ""); // Rabeprazole
+  formData.append("entry.1166451388", answers['q13'] || "");// GERD 
+  formData.append("entry.834790229", answers['q14'] || ""); // Antihistamine 
+  formData.append("entry.76373117", answers['q15'] || "");  // Lactulose 
+  formData.append("entry.1363275176", answers['q16'] || "");// Xanthine 
+
+  // Fire off the background request (mode: "no-cors" ensures browser security allows the hidden POST)
+  fetch(url, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).catch(err => console.error("Submit Error:", err));
+}
+
+function showResults(){
+  document.getElementById('nav-row').style.display='none';
+  setScreen('results');
+  const done=Object.keys(answers).filter(k=>answers[k]).length;
+  const pct=Math.round(done/QUESTIONS.length*100);
+  document.getElementById('final-score').textContent=xp;
+  document.getElementById('stat-answered').textContent=done;
+  document.getElementById('stat-pct').textContent=pct+'%';
+  document.getElementById('xpbar-fill').style.width='100%';
+  spawnConfetti();
+  
+  // Submit silently in background once the user hits the final page
+  submitData();
+}
+
+/* ── PARTICLE SYSTEM ── */
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+let particles=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+function spawnParticle(){
+  particles.push({
+    x:Math.random()*canvas.width,
+    y:canvas.height+10,
+    vx:(Math.random()-0.5)*0.8,
+    vy:-(0.5+Math.random()*1.5),
+    size:Math.random()*2+0.5,
+    opacity:Math.random()*0.4+0.1,
+    color:Math.random()>0.5?'#00ff80':'#00ccff',
+    life:1
+  });
+}
+function spawnConfetti(){
+  for(let i=0;i<60;i++){
+    const colors=['#00ff80','#ffd700','#00ccff','#ff4466','#ffffff'];
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:-10,
+      vx:(Math.random()-0.5)*4,
+      vy:Math.random()*3+1,
+      size:Math.random()*5+2,
+      opacity:1,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      life:1,confetti:true
+    });
+  }
+}
+function animParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(Math.random()<0.15)spawnParticle();
+  particles=particles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.life-=p.confetti?0.008:0.003;
+    if(p.life<=0)return false;
+    ctx.globalAlpha=p.opacity*p.life;
+    ctx.fillStyle=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fill();
+    return p.y<canvas.height+20&&p.y>-20;
+  });
+  ctx.globalAlpha=1;
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+</script>
+</body>
+</html>
