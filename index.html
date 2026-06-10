@@ -4,487 +4,327 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Aristopharma WC2026 Challenge</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── LIGHT MODE RESET & BASE ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{height:100%;overflow:hidden}
-body{
-  font-family:'Exo 2',sans-serif;
-  background:#080b12;
-  color:#fff;
-  /* Switched to 100dvh for mobile keyboard support */
-  height:100dvh;
-  overflow:hidden;
-  -webkit-font-smoothing:antialiased;
-  user-select:none;
-  -webkit-tap-highlight-color:transparent;
+html, body {
+  height: 100%;
+  background-color: #f0f4f8; /* Soft light gray background */
+  font-family: 'Inter', sans-serif;
+  color: #1e293b; /* Deep slate text */
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
-
-/* ── SCANLINES + GRID BG ── */
-#bg{
-  position:fixed;inset:0;z-index:0;
-  background:
-    repeating-linear-gradient(0deg,rgba(0,255,128,0.015) 0px,rgba(0,255,128,0.015) 1px,transparent 1px,transparent 60px),
-    repeating-linear-gradient(90deg,rgba(0,255,128,0.015) 0px,rgba(0,255,128,0.015) 1px,transparent 1px,transparent 60px);
-  pointer-events:none;
-}
-#bg::after{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,transparent 1px,transparent 3px);
-  pointer-events:none;
-}
-
-/* ── PARTICLE CANVAS ── */
-#particles{position:fixed;inset:0;z-index:1;pointer-events:none}
 
 /* ── APP SHELL ── */
-#app{
-  position:relative;z-index:10;
-  height:100dvh; /* Critical fix for mobile keyboards */
-  display:flex;flex-direction:column;
-  overflow:hidden;
-  max-width:480px;
-  margin:0 auto;
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 0 40px rgba(0,0,0,0.05);
+  position: relative;
 }
 
-/* ── HUD TOP BAR ── */
-#hud{
-  flex-shrink:0;
-  padding:14px 16px 10px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid rgba(0,255,128,0.12);
-  background:rgba(8,11,18,0.9);
+/* ── HUD (TOP BAR) ── */
+#hud {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  z-index: 10;
 }
-.hud-logo{
-  font-family:'Orbitron',sans-serif;
-  font-size:11px;font-weight:700;
-  color:#00ff80;letter-spacing:0.15em;
-  text-transform:uppercase;
-  line-height:1.2;
+.hud-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0284c7; /* Aristopharma Blue */
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.3;
 }
-.hud-logo span{color:rgba(255,255,255,0.35);font-weight:400}
-.hud-lives{display:flex;gap:4px;align-items:center}
-.life-dot{width:10px;height:10px;border-radius:50%;background:#00ff80;box-shadow:0 0 6px #00ff8088}
-.life-dot.lost{background:#1a2a1a;box-shadow:none}
-#hud-score{
-  font-family:'Orbitron',sans-serif;
-  font-size:14px;font-weight:700;
-  color:#ffd700;
-  letter-spacing:0.05em;
-  text-shadow:0 0 10px #ffd70088;
-}
-
-/* ── XP BAR ── */
-#xpbar-wrap{
-  flex-shrink:0;
-  padding:6px 16px 8px;
-  background:rgba(8,11,18,0.9);
-  border-bottom:1px solid rgba(0,255,128,0.08);
-}
-.xpbar-label{
-  display:flex;justify-content:space-between;
-  font-size:10px;color:rgba(255,255,255,0.35);
-  font-family:'Orbitron',sans-serif;letter-spacing:0.08em;
-  margin-bottom:4px;
-}
-#xpbar-track{
-  height:4px;background:rgba(255,255,255,0.08);
-  border-radius:2px;overflow:hidden;
-}
-#xpbar-fill{
-  height:100%;width:0%;
-  background:linear-gradient(90deg,#00ff80,#00ccff);
-  border-radius:2px;
-  transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+.hud-logo span { color: #64748b; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 10px; }
+#hud-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #10b981; /* Success Green */
+  background: #ecfdf5;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #a7f3d0;
 }
 
-/* ── MAIN STAGE ── */
-#stage{
-  flex:1;
-  overflow:hidden;
-  position:relative;
-  display:flex;align-items:center;justify-content:center;
+/* ── PROGRESS BAR ── */
+#xpbar-wrap {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.xpbar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+#xpbar-track {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+#xpbar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #0ea5e9, #10b981);
+  border-radius: 3px;
+  transition: width 0.4s ease;
 }
 
-/* ── SCREEN SYSTEM ── */
-.screen{
-  position:absolute;inset:0;
-  display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:20px 16px;
-  animation:screenIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+/* ── MAIN STAGE & SCROLLING ── */
+#stage {
+  flex: 1;
+  overflow-y: auto; /* Allows natural scrolling */
+  position: relative;
+  scroll-behavior: smooth;
 }
-.screen.active{display:flex}
-@keyframes screenIn{
-  from{opacity:0;transform:scale(0.92) translateY(16px)}
-  to{opacity:1;transform:scale(1) translateY(0)}
+.screen {
+  display: none;
+  flex-direction: column;
+  padding: 24px 20px 40px;
+  min-height: 100%;
 }
+.screen.active { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ── SPLASH SCREEN ── */
-#splash{justify-content:flex-start;padding-top:20px; overflow-y:auto; padding-bottom:40px;}
-.splash-trophy{
-  font-size:50px;margin-bottom:4px;
-  animation:float 3s ease-in-out infinite;
+/* ── SPLASH SCREEN UI ── */
+#splash { align-items: center; text-align: center; }
+.splash-icon { font-size: 54px; margin-bottom: 10px; }
+.splash-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 6px;
 }
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-8px)}
-}
-.splash-title{
-  font-family:'Orbitron',sans-serif;
-  font-size:28px;font-weight:900;
-  color:#fff;letter-spacing:-0.01em;
-  text-align:center;line-height:1;
-  margin-bottom:4px;
-}
-.splash-title .highlight{color:#00ff80;text-shadow:0 0 20px #00ff8066}
-.splash-year{
-  font-family:'Orbitron',sans-serif;
-  font-size:46px;font-weight:900;
-  color:transparent;
-  -webkit-text-stroke:2px rgba(0,255,128,0.4);
-  line-height:1;margin-bottom:8px;
-}
-.splash-by{
-  font-size:11px;color:rgba(255,255,255,0.4);
-  letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:20px;
-}
-.prizes-row{
-  display:flex;gap:8px;width:100%;margin-bottom:20px;overflow-x:auto;
-  padding-bottom:10px;scrollbar-width:none;
-}
-.prizes-row::-webkit-scrollbar{display:none}
+.splash-title .highlight { color: #0284c7; }
+.splash-sub { font-size: 13px; color: #64748b; margin-bottom: 24px; font-weight: 500; }
 
-/* Added Image Styling for Prizes */
-.prize-card{
-  flex:0 0 auto;
-  background:rgba(255,215,0,0.05);
-  border:1px solid rgba(255,215,0,0.2);
-  border-radius:12px;
-  padding:12px 10px;
-  text-align:center;
-  min-width:110px;
+/* ── PRIZE CARDS ── */
+.prizes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+.prize-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 }
 .prize-img {
-  height: 45px;
+  height: 40px;
   width: auto;
-  margin: 8px 0;
   object-fit: contain;
-  filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
+  margin: 10px 0;
 }
-.prize-rank{font-size:9px;color:#ffd700;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;}
-.prize-name{font-size:11px;color:rgba(255,255,255,0.9);font-weight:600;line-height:1.2;}
+.prize-rank { font-size: 10px; color: #ea580c; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; background:#fff7ed; padding: 2px 6px; border-radius:4px;}
+.prize-name { font-size: 12px; color: #334155; font-weight: 600; line-height: 1.2; text-align: center;}
 
-.info-strip{
-  width:100%;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:10px;
-  padding:10px 14px;
-  font-size:12px;
-  color:rgba(255,255,255,0.5);
-  line-height:1.6;
-  margin-bottom:20px;
-}
-.info-strip strong{color:rgba(0,255,128,0.8)}
-.btn-start{
-  width:100%;
-  padding:16px;
-  background:#00ff80;
-  border:none;
-  border-radius:16px;
-  font-family:'Orbitron',sans-serif;
-  font-size:16px;font-weight:700;
-  color:#080b12;
-  cursor:pointer;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  transition:transform 0.1s,box-shadow 0.2s;
-  box-shadow:0 0 30px #00ff8044;
-  margin-bottom: 20px;
-}
-.btn-start:active{transform:scale(0.97)}
-
-/* ── QUESTION SCREEN ── */
-#qscreen{
-  justify-content:flex-start;
-  padding:0 16px;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  gap:0;
-  align-items:stretch;
-  padding-bottom: 60px; /* Added padding to ensure final inputs scroll above the nav bar */
-}
-#qscreen::-webkit-scrollbar{display:none}
-.q-section-tag{
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(0,204,255,0.1);
-  border:1px solid rgba(0,204,255,0.25);
-  border-radius:6px;
-  padding:4px 10px;
-  font-size:10px;
-  color:#00ccff;
-  font-family:'Orbitron',sans-serif;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  margin:16px 0 10px;
-  align-self:flex-start;
-}
-.q-number-badge{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:10px;
-}
-.q-num-label{
-  font-family:'Orbitron',sans-serif;
-  font-size:11px;color:rgba(255,255,255,0.3);
-  letter-spacing:0.12em;
-}
-.q-num-value{
-  font-family:'Orbitron',sans-serif;
-  font-size:22px;font-weight:900;
-  color:#fff;letter-spacing:-0.02em;
-}
-.q-num-total{
-  font-family:'Orbitron',sans-serif;
-  font-size:13px;color:rgba(255,255,255,0.25);
-}
-.q-text{
-  font-size:18px;font-weight:600;
-  color:#fff;line-height:1.4;
-  margin-bottom:6px;
-}
-.q-hint{
-  font-size:12px;color:rgba(255,255,255,0.4);
-  margin-bottom:18px;line-height:1.4;
-}
-.game-input{
-  width:100%;
-  background:rgba(255,255,255,0.05);
-  border:1.5px solid rgba(255,255,255,0.12);
-  border-radius:12px;
-  padding:16px;
-  font-size:16px;
-  font-family:'Exo 2',sans-serif;
-  color:#fff;
-  outline:none;
-  transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
-  -webkit-appearance:none;
-  caret-color:#00ff80;
-  margin-bottom:8px;
-}
-.game-input:focus{
-  border-color:#00ff80;
-  background:rgba(0,255,128,0.04);
-  box-shadow:0 0 0 3px rgba(0,255,128,0.1);
-}
-.game-input::placeholder{color:rgba(255,255,255,0.2)}
-.game-input.filled{border-color:rgba(0,255,128,0.5);background:rgba(0,255,128,0.04)}
-.game-input.error{border-color:rgba(255,60,60,0.6);animation:shake 0.3s ease}
-@keyframes shake{
-  0%,100%{transform:translateX(0)}
-  25%{transform:translateX(-6px)}
-  75%{transform:translateX(6px)}
-}
-
-/* ── NAV BUTTONS ── */
-.nav-row{
-  display:flex;gap:10px;
-  padding:10px 16px 14px;
-  flex-shrink:0;
-  background:rgba(8,11,18,0.98);
-  border-top:1px solid rgba(255,255,255,0.06);
-  /* Added absolute pinning logic to combat aggressive Android keyboards */
-  position: relative;
-  bottom: 0;
+/* ── GENERAL BUTTONS ── */
+.btn-primary {
   width: 100%;
-  z-index: 20;
+  padding: 16px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+  transition: transform 0.1s, background 0.2s;
 }
-.btn-back{
-  flex:0 0 52px;height:52px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px;
-  color:rgba(255,255,255,0.5);
-  font-size:20px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background 0.15s;
-}
-.btn-back:active{background:rgba(255,255,255,0.12)}
-.btn-next{
-  flex:1;height:52px;
-  background:#00ff80;
-  border:none;border-radius:12px;
-  font-family:'Orbitron',sans-serif;
-  font-size:14px;font-weight:700;
-  color:#080b12;
-  cursor:pointer;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:transform 0.1s,opacity 0.2s;
-  box-shadow:0 4px 20px rgba(0,255,128,0.3);
-}
-.btn-next:active{transform:scale(0.97)}
-.btn-next.disabled{background:#1a2a1a;color:rgba(255,255,255,0.2);box-shadow:none;cursor:default}
-.btn-next .arrow{font-size:18px}
+.btn-primary:active { transform: scale(0.98); background: #0369a1; }
 
-/* ── FEEDBACK OVERLAY ── */
-#feedback{
-  position:fixed;inset:0;z-index:50;
-  display:none;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.7);
-  animation:fadeIn 0.15s ease;
+/* ── QUESTION SCREEN UI ── */
+.q-section-tag {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-#feedback.show{display:flex}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.feedback-box{
-  text-align:center;
-  animation:popUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
-}
-@keyframes popUp{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
-.feedback-icon{font-size:72px;margin-bottom:12px;display:block}
-.feedback-msg{
-  font-family:'Orbitron',sans-serif;
-  font-size:20px;font-weight:700;letter-spacing:0.05em;
-  margin-bottom:4px;
-}
-.feedback-msg.ok{color:#00ff80;text-shadow:0 0 20px #00ff8066}
-.feedback-msg.skip{color:#ffd700;text-shadow:0 0 20px #ffd70066}
+.q-number { font-family: 'Orbitron', sans-serif; font-size: 12px; color: #94a3b8; font-weight: 700; margin-bottom: 6px; }
+.q-text { font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3; margin-bottom: 20px; }
 
-/* ── RESULTS SCREEN ── */
-#results{gap:0;justify-content:flex-start;padding-top:20px;overflow-y:auto; padding-bottom:40px;}
-#results::-webkit-scrollbar{display:none}
-.results-header{text-align:center;margin-bottom:20px;width:100%}
-.results-trophy{font-size:64px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:8px}
-.results-title{
-  font-family:'Orbitron',sans-serif;
-  font-size:22px;font-weight:900;color:#ffd700;
-  text-shadow:0 0 20px #ffd70066;
-  letter-spacing:0.05em;margin-bottom:4px;
+/* ── INPUTS ── */
+.game-input {
+  width: 100%;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+  -webkit-appearance: none;
 }
-.score-display{
-  width:100%;
-  background:rgba(255,215,0,0.06);
-  border:1px solid rgba(255,215,0,0.2);
-  border-radius:18px;
-  padding:20px;
-  text-align:center;
-  margin-bottom:14px;
-}
-.score-big{
-  font-family:'Orbitron',sans-serif;
-  font-size:56px;font-weight:900;
-  color:#ffd700;text-shadow:0 0 30px #ffd70066;
-  line-height:1;
-}
+.game-input:focus { background: #ffffff; border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.1); }
+.game-input::placeholder { color: #94a3b8; }
+.game-input.filled { border-color: #10b981; background: #f0fdf4; }
 
-/* DROPDOWN STYLING MINIFIED FOR SPACE */
-.dd-btn{width:100%;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px;font-size:15px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;margin-bottom:8px;}
-.dd-btn.selected{color:#fff;border-color:rgba(0,255,128,0.5);background:rgba(0,255,128,0.04);}
-.dd-panel{width:100%;background:#101620;border:1px solid rgba(255,255,255,0.1);border-radius:14px;overflow:hidden;margin-bottom:12px;max-height:260px;display:flex;flex-direction:column;}
-.dd-search-wrap{padding:10px;border-bottom:1px solid rgba(255,255,255,0.07);}
-.dd-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:#fff;}
-.dd-scroll{overflow-y:auto;flex:1;}
-.dd-option{display:flex;gap:10px;padding:12px 14px;color:rgba(255,255,255,0.8);cursor:pointer;}
+/* ── DROPDOWN STYLING ── */
+.dd-btn {
+  width: 100%; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px;
+  font-size: 16px; font-family: 'Inter', sans-serif; color: #64748b; text-align: left; cursor: pointer;
+}
+.dd-btn.selected { color: #0f172a; border-color: #10b981; background: #f0fdf4; font-weight: 500; }
+.dd-panel {
+  width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 280px; display: flex; flex-direction: column; overflow: hidden;
+}
+.dd-search { width: 100%; padding: 12px 16px; border: none; border-bottom: 1px solid #e2e8f0; font-size: 14px; outline: none; }
+.dd-scroll { overflow-y: auto; flex: 1; }
+.dd-option { padding: 14px 16px; font-size: 15px; color: #334155; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+.dd-option:active { background: #f8fafc; }
+
+/* ── INLINE NAVIGATION (Fixes Keyboard Overlap) ── */
+.inline-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px; /* Pushes it below the inputs naturally */
+}
+.btn-back {
+  flex: 0 0 60px; height: 56px;
+  background: #f1f5f9; border: none; border-radius: 12px;
+  color: #64748b; font-size: 20px; font-weight: 700; cursor: pointer;
+}
+.btn-back:active { background: #e2e8f0; }
+.btn-next {
+  flex: 1; height: 56px;
+  background: #10b981; border: none; border-radius: 12px;
+  color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+.btn-next.disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; pointer-events: none; }
+
+/* ── FEEDBACK & LOCK SCREEN ── */
+#overlay-screen {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(255,255,255,0.95); display: none;
+  align-items: center; justify-content: center; text-align: center; padding: 20px;
+}
+.overlay-box { background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;}
+
+/* ── RESULTS ── */
+.results-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 24px; text-align: center; margin-top: 20px;}
+.score-big { font-family: 'Orbitron', sans-serif; font-size: 48px; font-weight: 900; color: #0284c7; }
 </style>
 </head>
 <body>
-<div id="bg"></div>
-<canvas id="particles"></canvas>
 
-<div id="gating-screen" class="screen" style="z-index: 100; background: #080b12; justify-content: center; text-align: center;">
-  <div class="splash-trophy" style="font-size: 80px; animation: none; margin-bottom: 20px;">🔒</div>
-  <div class="splash-title" style="font-size: 24px; color: #ff4466; text-shadow: 0 0 20px #ff446666;">CHALLENGE LOCKED</div>
-  <div class="info-strip" style="max-width: 300px; margin: 20px auto; background: rgba(255, 68, 102, 0.05); border-color: rgba(255, 68, 102, 0.2);">
-    The Aristopharma World Cup 2026 Challenge is currently closed. Please wait for the official kickoff!
+<div id="overlay-screen" style="display: flex;">
+  <div class="overlay-box">
+    <div style="font-size: 50px; margin-bottom: 10px;">🔒</div>
+    <h2 style="font-family: 'Orbitron', sans-serif; color: #0f172a;">LOCKED</h2>
+    <p style="color: #64748b; font-size: 14px; margin-top: 10px;">The Aristopharma Challenge is currently closed. Please wait for the official kickoff.</p>
   </div>
 </div>
 
 <div id="app" style="display: none;">
+  
   <div id="hud">
-    <div><div class="hud-logo">Aristopharma<br><span>WC 2026 Challenge</span></div></div>
+    <div class="hud-logo">Aristopharma<br><span>WC 2026 Challenge</span></div>
     <div id="hud-score">0 XP</div>
   </div>
   
   <div id="xpbar-wrap">
-    <div class="xpbar-label"><span id="xp-level">LEVEL 1</span><span id="xp-pct">0 / 16 COMPLETE</span></div>
+    <div class="xpbar-label"><span>PROGRESS</span><span id="xp-pct">0 / 16 COMPLETE</span></div>
     <div id="xpbar-track"><div id="xpbar-fill"></div></div>
   </div>
 
   <div id="stage">
+    
     <div class="screen active" id="splash">
-      <div class="splash-trophy">⚽</div>
-      <div class="splash-title">WORLD CUP<br><span class="highlight">CHALLENGE</span></div>
-      <div class="splash-year">2026</div>
-      <div class="splash-by">POWERED BY ARISTOPHARMA</div>
+      <div class="splash-icon">🏆</div>
+      <div class="splash-title">WORLD CUP <span class="highlight">2026</span></div>
+      <div class="splash-sub">QUIZ & PREDICTION CHALLENGE</div>
       
-      <div class="prizes-row">
+      <div class="prizes-grid">
         <div class="prize-card">
-          <div class="prize-rank">🥇 1ST</div>
-          <img src="https://cdn-icons-png.flaticon.com/512/0/14.png" alt="iPhone" class="prize-img" style="filter: invert(1);"> 
+          <div class="prize-rank">1ST PRIZE</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/0/14.png" alt="iPhone" class="prize-img"> 
           <div class="prize-name">iPhone Air</div>
         </div>
         <div class="prize-card">
-          <div class="prize-rank">🥈 2ND</div>
+          <div class="prize-rank">2ND PRIZE</div>
           <img src="https://cdn-icons-png.flaticon.com/512/7511/7511425.png" alt="Tickets" class="prize-img">
-          <div class="prize-name">Kathmandu (2 pax)</div>
+          <div class="prize-name">Kathmandu Trip</div>
         </div>
         <div class="prize-card">
-          <div class="prize-rank">🥉 3RD</div>
+          <div class="prize-rank">3RD PRIZE</div>
           <img src="https://cdn-icons-png.flaticon.com/512/2850/2850604.png" alt="Samsung" class="prize-img">
           <div class="prize-name">Samsung Galaxy</div>
         </div>
         <div class="prize-card">
-          <div class="prize-rank">🏅 4–20TH</div>
+          <div class="prize-rank">4TH-20TH</div>
           <img src="https://cdn-icons-png.flaticon.com/512/2845/2845892.png" alt="Cash" class="prize-img">
           <div class="prize-name">25,000 TK Cash</div>
         </div>
       </div>
       
-      <div class="info-strip">
-        <strong>Deadline:</strong> 12 June – 12 July 2026 &nbsp;·&nbsp;
-        <strong>Eligibility:</strong> Bangladesh-based doctors only
-      </div>
-      <button class="btn-start" onclick="startGame()">▶ &nbsp; START CHALLENGE</button>
+      <p style="font-size: 12px; color: #64748b; margin-bottom: 24px; line-height: 1.5;">
+        <strong>Deadline:</strong> 12 June – 12 July 2026<br>
+        Bangladesh-based doctors only. One entry per doctor.
+      </p>
+      <button class="btn-primary" onclick="startGame()">START CHALLENGE →</button>
     </div>
 
     <div class="screen" id="qscreen"></div>
 
     <div class="screen" id="results">
-      <div class="results-header">
-        <span class="results-trophy">🏆</span>
-        <div class="results-title">MISSION COMPLETE!</div>
-      </div>
-      <div class="score-display">
-        <div class="score-big" id="final-score">0</div>
-        <div class="score-label" style="margin-top: 10px; color:#fff;">Your entry has been securely locked in our database!</div>
+      <div style="text-align: center;">
+        <div class="splash-icon">✅</div>
+        <h2 class="splash-title">ENTRY SECURED</h2>
+        <p style="color: #64748b; font-size: 14px;">Your predictions have been locked in our database.</p>
+        
+        <div class="results-card">
+          <div style="font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: 0.05em;">TOTAL XP EARNED</div>
+          <div class="score-big" id="final-score">0</div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="nav-row" id="nav-row" style="display:none">
-    <button class="btn-back" id="btn-back" onclick="prevQ()">←</button>
-    <button class="btn-next" id="btn-next" onclick="nextQ()">
-      <span id="btn-next-label">NEXT</span>
-      <span class="arrow">→</span>
-    </button>
-  </div>
-</div>
-
-<div id="feedback">
-  <div class="feedback-box">
-    <span class="feedback-icon" id="fb-icon"></span>
-    <div class="feedback-msg" id="fb-msg"></div>
-  </div>
-</div>
-
-<script>
+  </div> </div> <script>
+// ── GATING SYSTEM URL ──
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6H1CoRyijpxzVE7T3ifCaWPpt1cSiyr-sqAUywqfz9vvgMz0oMtq4-l3E1Wt2-AeWWA/exec";
 
 async function checkStatus() {
@@ -492,158 +332,173 @@ async function checkStatus() {
     const response = await fetch(APPS_SCRIPT_URL);
     const data = await response.json();
     if (data.status === "LIVE") {
-      document.getElementById('gating-screen').style.display = 'none';
+      document.getElementById('overlay-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
-    } else {
-      document.getElementById('gating-screen').style.display = 'flex';
-      document.getElementById('app').style.display = 'none';
     }
   } catch (error) {
-    document.getElementById('gating-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
+    // Keep locked if fetch fails
   }
 }
-checkStatus();
+checkStatus(); // Fire on load
 
-const COUNTRIES=[ {n:'Argentina',f:'🇦🇷'},{n:'Brazil',f:'🇧🇷'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'France',f:'🇫🇷'},{n:'Germany',f:'🇩🇪'},{n:'Portugal',f:'🇵🇹'},{n:'Spain',f:'🇪🇸'} ];
-
-const QUESTIONS=[
-  {id:'q1',section:'🩺 Doctor Info',type:'email',label:'Email Address',placeholder:'doctor@example.com',required:true},
-  {id:'q2',type:'text',label:'Full Name',placeholder:'Dr. Full Name',required:true},
-  {id:'q3',type:'text',label:'BM&DC Registration Number',placeholder:'e.g. A-12345',required:true},
-  {id:'q4',type:'tel',label:'Mobile Number',placeholder:'01XXXXXXXXX',required:true},
-  {id:'q5',type:'text',label:'Specialty',placeholder:'e.g. Cardiology, Medicine',required:true},
-  {id:'q6',type:'text',label:'Hospital / Chamber Address',placeholder:'Hospital name, District',required:true},
-  {id:'q7',section:'⚽ Predictions',type:'dropdown',label:'2026 FIFA World Cup Champion?',required:true},
-  {id:'q8',type:'dropdown',label:'Runner-Up at the 2026 Final?',required:true},
-  {id:'q9',type:'text',label:'Golden Ball Winner (Best Player)',placeholder:'e.g. Lionel Messi',required:true},
-  {id:'q10',type:'text',label:'Golden Boot Winner (Top Goalscorer)',placeholder:'e.g. Kylian Mbappé',required:true},
-  {id:'q11',type:'text',label:'Golden Glove Winner (Best Goalkeeper)',placeholder:'e.g. Manuel Neuer',required:true},
-  {id:'q12',section:'💊 Brand Quiz',type:'text',label:"Aristopharma's Rabeprazole brand name?",placeholder:'Brand name',required:true},
-  {id:'q13',type:'text',label:'Preferred Aristopharma brand to treat GERD?',placeholder:'Brand name',required:true},
-  {id:'q14',type:'text',label:'Aristopharma brand — monarch of all antihistamines?',placeholder:'Brand name',required:true},
-  {id:'q15',type:'text',label:'Pioneer lactulose brand in Bangladesh since 1997?',placeholder:'Brand name',required:true},
-  {id:'q16',type:'text',label:"Aristopharma's latest xanthine derivative for Asthma & COPD?",placeholder:'Brand name',required:true},
+// 48 PROJECTED TEAMS FOR 2026 FORMAT
+const COUNTRIES=[
+  {n:'Algeria',f:'🇩🇿'}, {n:'Argentina',f:'🇦🇷'}, {n:'Australia',f:'🇦🇺'}, {n:'Austria',f:'🇦🇹'}, {n:'Belgium',f:'🇧🇪'}, {n:'Brazil',f:'🇧🇷'},
+  {n:'Cameroon',f:'🇨🇲'}, {n:'Canada',f:'🇨🇦'}, {n:'Chile',f:'🇨🇱'}, {n:'Colombia',f:'🇨🇴'}, {n:'Costa Rica',f:'🇨🇷'}, {n:'Croatia',f:'🇭🇷'},
+  {n:'Denmark',f:'🇩🇰'}, {n:'Ecuador',f:'🇪🇨'}, {n:'Egypt',f:'🇪🇬'}, {n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'}, {n:'France',f:'🇫🇷'}, {n:'Germany',f:'🇩🇪'},
+  {n:'Ghana',f:'🇬🇭'}, {n:'Honduras',f:'🇭🇳'}, {n:'Hungary',f:'🇭🇺'}, {n:'Iran',f:'🇮🇷'}, {n:'Italy',f:'🇮🇹'}, {n:'Ivory Coast',f:'🇨🇮'},
+  {n:'Jamaica',f:'🇯🇲'}, {n:'Japan',f:'🇯🇵'}, {n:'Mali',f:'🇲🇱'}, {n:'Mexico',f:'🇲🇽'}, {n:'Morocco',f:'🇲🇦'}, {n:'Netherlands',f:'🇳🇱'},
+  {n:'New Zealand',f:'🇳🇿'}, {n:'Nigeria',f:'🇳🇬'}, {n:'Panama',f:'🇵🇦'}, {n:'Peru',f:'🇵🇪'}, {n:'Poland',f:'🇵🇱'}, {n:'Portugal',f:'🇵🇹'},
+  {n:'Qatar',f:'🇶🇦'}, {n:'Saudi Arabia',f:'🇸🇦'}, {n:'Senegal',f:'🇸🇳'}, {n:'Serbia',f:'🇷🇸'}, {n:'South Africa',f:'🇿🇦'}, {n:'South Korea',f:'🇰🇷'},
+  {n:'Spain',f:'🇪🇸'}, {n:'Sweden',f:'🇸🇪'}, {n:'Switzerland',f:'🇨🇭'}, {n:'UAE',f:'🇦🇪'}, {n:'Uruguay',f:'🇺🇾'}, {n:'USA',f:'🇺🇸'}
 ];
 
-let answers={}, xp=0, current=0;
+const QUESTIONS=[
+  {id:'q1',section:'🩺 Verification',type:'email',label:'Email Address',placeholder:'doctor@example.com',required:true},
+  {id:'q2',type:'text',label:'Full Name',placeholder:'Dr. First Last',required:true},
+  {id:'q3',type:'text',label:'BM&DC Registration Number',placeholder:'e.g. A-12345',required:true},
+  {id:'q4',type:'tel',label:'Mobile Number',placeholder:'01XXXXXXXXX',required:true},
+  {id:'q5',type:'text',label:'Specialty',placeholder:'e.g. Cardiology',required:true},
+  {id:'q6',type:'text',label:'Hospital / Chamber Address',placeholder:'Current practice location',required:true},
+  {id:'q7',section:'⚽ Predictions',type:'dropdown',label:'Who will win the 2026 World Cup?',required:true},
+  {id:'q8',type:'dropdown',label:'Who will be the Runner-Up?',required:true},
+  {id:'q9',type:'text',label:'Golden Ball (Best Player)',placeholder:'Player Full Name',required:true},
+  {id:'q10',type:'text',label:'Golden Boot (Top Scorer)',placeholder:'Player Full Name',required:true},
+  {id:'q11',type:'text',label:'Golden Glove (Best Keeper)',placeholder:'Player Full Name',required:true},
+  {id:'q12',section:'💊 Brand Quiz',type:'text',label:"Aristopharma's Rabeprazole brand?",placeholder:'Brand name',required:true},
+  {id:'q13',type:'text',label:'Preferred Aristopharma brand for GERD?',placeholder:'Brand name',required:true},
+  {id:'q14',type:'text',label:'Monarch of all antihistamines (Aristopharma)?',placeholder:'Brand name',required:true},
+  {id:'q15',type:'text',label:'Pioneer lactulose brand since 1997?',placeholder:'Brand name',required:true},
+  {id:'q16',type:'text',label:'Latest xanthine derivative for Asthma/COPD?',placeholder:'Brand name',required:true},
+];
 
-function setScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='gating-screen') {s.classList.remove('active');s.style.display='none'}});
-  const s=document.getElementById(id);
-  if(s) { s.style.display='flex'; requestAnimationFrame(()=>s.classList.add('active')); }
-}
+let answers={}, current=0;
 
 function updateHUD(){
-  const done=Object.keys(answers).filter(k=>answers[k]).length;
-  document.getElementById('xpbar-fill').style.width=Math.round(done/QUESTIONS.length*100)+'%';
+  const done = Object.keys(answers).filter(k=>answers[k]).length;
+  document.getElementById('xpbar-fill').style.width = Math.round((done/QUESTIONS.length)*100) + '%';
+  document.getElementById('xp-pct').textContent = done + ' / 16 COMPLETE';
+  document.getElementById('hud-score').textContent = (done * 50) + ' XP';
 }
 
-function startGame(){ document.getElementById('nav-row').style.display='flex'; setScreen('qscreen'); renderQ(0); }
+function startGame(){ 
+  document.getElementById('splash').classList.remove('active');
+  document.getElementById('qscreen').classList.add('active');
+  renderQ(0); 
+}
 
 function renderQ(idx){
-  current=idx; const q=QUESTIONS[idx]; const stage=document.getElementById('qscreen'); stage.scrollTop=0;
-  let html=`<div class="q-number-badge"><span class="q-num-value">${String(idx+1).padStart(2,'0')}</span><span class="q-num-total">/ 16</span></div><div class="q-text">${q.label}</div>`;
-  const val=answers[q.id]||'';
+  current = idx; 
+  const q = QUESTIONS[idx]; 
+  const stage = document.getElementById('qscreen'); 
+  
+  let html = '';
+  if(q.section) html += `<div class="q-section-tag">${q.section}</div>`;
+  html += `<div class="q-number">QUESTION ${idx+1} OF 16</div><div class="q-text">${q.label}</div>`;
+  
+  const val = answers[q.id] || '';
 
-  if(q.type==='dropdown'){
-    html+=`<button class="dd-btn ${val?'selected':''}" id="dd-btn-${q.id}" onclick="toggleDD('${q.id}')"><span>${val||'Select…'}</span></button>
-      <div class="dd-panel" id="dd-panel-${q.id}" style="display:none"><div class="dd-scroll" id="dd-list-${q.id}">
-        ${COUNTRIES.map(c=>`<div class="dd-option" onclick="selectDD('${q.id}','${c.n}')"><span>${c.f} ${c.n}</span></div>`).join('')}
-      </div></div>`;
+  if(q.type === 'dropdown'){
+    html += `
+      <button class="dd-btn ${val?'selected':''}" id="dd-btn-${q.id}" onclick="toggleDD('${q.id}')">
+        <span>${val || 'Select country...'}</span>
+      </button>
+      <div class="dd-panel" id="dd-panel-${q.id}" style="display:none;">
+        <input type="text" class="dd-search" id="dd-search-${q.id}" placeholder="Search..." oninput="filterDD('${q.id}', this.value)">
+        <div class="dd-scroll" id="dd-list-${q.id}">
+          ${COUNTRIES.map(c=>`<div class="dd-option" onclick="selectDD('${q.id}','${c.n}')">${c.f} ${c.n}</div>`).join('')}
+        </div>
+      </div>`;
   } else {
-    html+=`<input type="${q.type}" class="game-input ${val?'filled':''}" id="input-${q.id}" placeholder="${q.placeholder}" value="${val}" oninput="onInput('${q.id}',this.value)">`;
+    html += `<input type="${q.type}" class="game-input ${val?'filled':''}" id="input-${q.id}" placeholder="${q.placeholder}" value="${val}" oninput="onInput('${q.id}',this.value)">`;
   }
 
-  stage.innerHTML=html;
-  document.getElementById('btn-next').classList.toggle('disabled',q.required&&!val);
-  document.getElementById('btn-next-label').textContent=idx===QUESTIONS.length-1?'SUBMIT':'NEXT';
-  
-  // UX FIX: Automatically scroll input into view to combat mobile keyboard overlay
-  setTimeout(()=>{
-      const el=document.getElementById('input-'+q.id);
-      if(el) { 
-          el.focus();
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-  },100);
+  // INLINE NAVIGATION: Solves mobile keyboard issue natively
+  const btnLabel = idx === QUESTIONS.length - 1 ? 'SUBMIT ENTRY' : 'NEXT →';
+  html += `
+    <div class="inline-nav">
+      <button class="btn-back" onclick="prevQ()" style="opacity: ${idx===0 ? '0.3' : '1'}">←</button>
+      <button class="btn-next ${q.required && !val ? 'disabled' : ''}" id="btn-next" onclick="nextQ()">${btnLabel}</button>
+    </div>
+  `;
+
+  stage.innerHTML = html;
 }
 
-function onInput(id,val){
-  answers[id]=val.trim();
-  document.getElementById('btn-next').classList.remove('disabled');
+function onInput(id, val){
+  answers[id] = val;
+  if(val.trim() !== '') document.getElementById('btn-next').classList.remove('disabled');
+  else document.getElementById('btn-next').classList.add('disabled');
   updateHUD();
 }
 
 function toggleDD(id){
-  const panel=document.getElementById('dd-panel-'+id);
-  panel.style.display = panel.style.display==='none' ? 'flex' : 'none';
+  const panel = document.getElementById('dd-panel-'+id);
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  if(panel.style.display === 'flex') document.getElementById('dd-search-'+id).focus();
 }
 
-function selectDD(id,name){
-  answers[id]=name;
+function filterDD(id, query){
+  const q = query.toLowerCase();
+  document.querySelectorAll(`#dd-list-${id} .dd-option`).forEach(opt => {
+    opt.style.display = opt.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+  });
+}
+
+function selectDD(id, name){
+  answers[id] = name;
+  document.getElementById('dd-btn-'+id).querySelector('span').textContent = name;
+  document.getElementById('dd-btn-'+id).classList.add('selected');
+  document.getElementById('dd-panel-'+id).style.display = 'none';
   document.getElementById('btn-next').classList.remove('disabled');
   updateHUD();
-  document.getElementById('dd-btn-'+id).querySelector('span').textContent=name;
-  document.getElementById('dd-panel-'+id).style.display='none';
-}
-
-function showFeedback(cb){
-  const fb=document.getElementById('feedback');
-  document.getElementById('fb-icon').textContent='✅';
-  document.getElementById('fb-msg').className='feedback-msg ok';
-  fb.classList.add('show');
-  setTimeout(()=>{fb.classList.remove('show');cb();},600);
 }
 
 function nextQ(){
   if(document.getElementById('btn-next').classList.contains('disabled')) return;
-  if(current===QUESTIONS.length-1){ showFeedback(submitDataToGoogle); return; }
-  showFeedback(()=>renderQ(current+1));
+  if(current === QUESTIONS.length - 1) { submitDataToGoogle(); return; }
+  renderQ(current + 1);
 }
 
-function prevQ(){ if(current>0) renderQ(current-1); }
+function prevQ(){ if(current > 0) renderQ(current - 1); }
 
-// ── THE ULTIMATE FIX: NATIVE HIDDEN FORM SUBMISSION ── //
+// ── HIDDEN FORM SUBMISSION ENGINE ── //
 function submitDataToGoogle() {
-  document.getElementById('nav-row').style.display='none';
-  setScreen('results');
-  document.getElementById('xpbar-fill').style.width='100%';
-  spawnConfetti();
+  document.getElementById('qscreen').classList.remove('active');
+  document.getElementById('results').classList.add('active');
+  document.getElementById('final-score').textContent = (Object.keys(answers).length * 50);
+  document.getElementById('xpbar-fill').style.width = '100%';
 
-  // 1. Create an invisible iframe
   const iframe = document.createElement('iframe');
   iframe.name = 'hidden_iframe';
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
 
-  // 2. Create a native HTML form pointing to your Google Form
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = "https://docs.google.com/forms/d/e/1FAIpQLSdSIxH8DP0kESJy91P-ALEmKlCVDevHbQHTLL0GgKg0mfacGw/formResponse";
-  form.target = 'hidden_iframe'; // Submits the form into the invisible iframe
+  form.target = 'hidden_iframe';
 
-  // 3. Map your exact answers to the Google Form Entry IDs
+  // Note the new custom entry ID for Q1 (Email)
   const dataMap = {
-    "emailAddress": answers['q1'],
+    "entry.1759885964": answers['q1'], 
     "entry.2038918538": answers['q2'],
     "entry.1331120625": answers['q3'],
     "entry.1906868355": answers['q4'],
-    "entry.435087459": answers['q5'],
-    "entry.39175090": answers['q6'],
+    "entry.435087459":  answers['q5'],
+    "entry.39175090":   answers['q6'],
     "entry.1028554198": answers['q7'],
     "entry.1135703577": answers['q8'],
-    "entry.499870340": answers['q9'],
+    "entry.499870340":  answers['q9'],
     "entry.1773681107": answers['q10'],
-    "entry.256639077": answers['q11'],
-    "entry.535845153": answers['q12'],
+    "entry.256639077":  answers['q11'],
+    "entry.535845153":  answers['q12'],
     "entry.1166451388": answers['q13'],
-    "entry.834790229": answers['q14'],
-    "entry.76373117": answers['q15'],
+    "entry.834790229":  answers['q14'],
+    "entry.76373117":   answers['q15'],
     "entry.1363275176": answers['q16']
   };
 
-  // 4. Attach data to form and submit instantly
   for (let key in dataMap) {
     let input = document.createElement('input');
     input.type = 'hidden';
@@ -653,27 +508,8 @@ function submitDataToGoogle() {
   }
 
   document.body.appendChild(form);
-  form.submit(); // This completely bypasses the fetch() security blocks!
+  form.submit();
 }
-
-/* ── PARTICLE SYSTEM ── */
-const canvas=document.getElementById('particles'); const ctx=canvas.getContext('2d'); let particles=[];
-function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;} resizeCanvas(); window.addEventListener('resize',resizeCanvas);
-function spawnConfetti(){
-  for(let i=0;i<80;i++){
-    particles.push({ x:Math.random()*canvas.width, y:-10, vx:(Math.random()-0.5)*4, vy:Math.random()*3+1, size:Math.random()*5+2, color:['#00ff80','#ffd700','#00ccff'][Math.floor(Math.random()*3)] });
-  }
-}
-function animParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles=particles.filter(p=>{
-    p.x+=p.vx; p.y+=p.vy;
-    ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
-    return p.y<canvas.height+20;
-  });
-  requestAnimationFrame(animParticles);
-}
-animParticles();
 </script>
 </body>
 </html>
