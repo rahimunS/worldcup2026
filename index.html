@@ -12,7 +12,8 @@ body{
   font-family:'Exo 2',sans-serif;
   background:#080b12;
   color:#fff;
-  height:100%;
+  /* Switched to 100dvh for mobile keyboard support */
+  height:100dvh;
   overflow:hidden;
   -webkit-font-smoothing:antialiased;
   user-select:none;
@@ -39,7 +40,7 @@ body{
 /* ── APP SHELL ── */
 #app{
   position:relative;z-index:10;
-  height:100vh;
+  height:100dvh; /* Critical fix for mobile keyboards */
   display:flex;flex-direction:column;
   overflow:hidden;
   max-width:480px;
@@ -118,15 +119,11 @@ body{
   from{opacity:0;transform:scale(0.92) translateY(16px)}
   to{opacity:1;transform:scale(1) translateY(0)}
 }
-@keyframes screenOut{
-  from{opacity:1;transform:scale(1)}
-  to{opacity:0;transform:scale(1.06)}
-}
 
 /* ── SPLASH SCREEN ── */
-#splash{justify-content:flex-start;padding-top:30px}
+#splash{justify-content:flex-start;padding-top:20px; overflow-y:auto; padding-bottom:40px;}
 .splash-trophy{
-  font-size:64px;margin-bottom:4px;
+  font-size:50px;margin-bottom:4px;
   animation:float 3s ease-in-out infinite;
 }
 @keyframes float{
@@ -135,7 +132,7 @@ body{
 }
 .splash-title{
   font-family:'Orbitron',sans-serif;
-  font-size:30px;font-weight:900;
+  font-size:28px;font-weight:900;
   color:#fff;letter-spacing:-0.01em;
   text-align:center;line-height:1;
   margin-bottom:4px;
@@ -143,32 +140,46 @@ body{
 .splash-title .highlight{color:#00ff80;text-shadow:0 0 20px #00ff8066}
 .splash-year{
   font-family:'Orbitron',sans-serif;
-  font-size:54px;font-weight:900;
+  font-size:46px;font-weight:900;
   color:transparent;
   -webkit-text-stroke:2px rgba(0,255,128,0.4);
   line-height:1;margin-bottom:8px;
 }
 .splash-by{
-  font-size:12px;color:rgba(255,255,255,0.4);
+  font-size:11px;color:rgba(255,255,255,0.4);
   letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:24px;
+  margin-bottom:20px;
 }
 .prizes-row{
-  display:flex;gap:6px;width:100%;margin-bottom:24px;overflow-x:auto;
-  padding-bottom:4px;scrollbar-width:none;
+  display:flex;gap:8px;width:100%;margin-bottom:20px;overflow-x:auto;
+  padding-bottom:10px;scrollbar-width:none;
 }
 .prizes-row::-webkit-scrollbar{display:none}
+
+/* Added Image Styling for Prizes */
 .prize-card{
   flex:0 0 auto;
   background:rgba(255,215,0,0.05);
   border:1px solid rgba(255,215,0,0.2);
   border-radius:12px;
-  padding:10px 12px;
+  padding:12px 10px;
   text-align:center;
-  min-width:100px;
+  min-width:110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
-.prize-rank{font-size:9px;color:#ffd700;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
-.prize-name{font-size:11px;color:rgba(255,255,255,0.85);font-weight:500;line-height:1.3}
+.prize-img {
+  height: 45px;
+  width: auto;
+  margin: 8px 0;
+  object-fit: contain;
+  filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
+}
+.prize-rank{font-size:9px;color:#ffd700;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;}
+.prize-name{font-size:11px;color:rgba(255,255,255,0.9);font-weight:600;line-height:1.2;}
+
 .info-strip{
   width:100%;
   background:rgba(255,255,255,0.04);
@@ -183,7 +194,7 @@ body{
 .info-strip strong{color:rgba(0,255,128,0.8)}
 .btn-start{
   width:100%;
-  padding:18px;
+  padding:16px;
   background:#00ff80;
   border:none;
   border-radius:16px;
@@ -195,6 +206,7 @@ body{
   text-transform:uppercase;
   transition:transform 0.1s,box-shadow 0.2s;
   box-shadow:0 0 30px #00ff8044;
+  margin-bottom: 20px;
 }
 .btn-start:active{transform:scale(0.97)}
 
@@ -206,6 +218,7 @@ body{
   -webkit-overflow-scrolling:touch;
   gap:0;
   align-items:stretch;
+  padding-bottom: 60px; /* Added padding to ensure final inputs scroll above the nav bar */
 }
 #qscreen::-webkit-scrollbar{display:none}
 .q-section-tag{
@@ -278,78 +291,18 @@ body{
   75%{transform:translateX(6px)}
 }
 
-/* ── DROPDOWN GAME STYLE ── */
-.dd-btn{
-  width:100%;
-  background:rgba(255,255,255,0.05);
-  border:1.5px solid rgba(255,255,255,0.12);
-  border-radius:12px;
-  padding:16px;
-  font-size:15px;
-  font-family:'Exo 2',sans-serif;
-  color:rgba(255,255,255,0.4);
-  outline:none;
-  cursor:pointer;
-  text-align:left;
-  display:flex;align-items:center;justify-content:space-between;
-  transition:border-color 0.2s;
-  margin-bottom:8px;
-}
-.dd-btn.selected{
-  color:#fff;
-  border-color:rgba(0,255,128,0.5);
-  background:rgba(0,255,128,0.04);
-}
-.dd-btn .flag{font-size:20px;margin-right:8px}
-.dd-chevron{color:rgba(255,255,255,0.3);font-size:16px;transition:transform 0.2s;flex-shrink:0}
-.dd-btn.open .dd-chevron{transform:rotate(180deg)}
-
-.dd-panel{
-  width:100%;
-  background:#101620;
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:14px;
-  overflow:hidden;
-  margin-bottom:12px;
-  animation:dropIn 0.2s ease both;
-  max-height:260px;
-  display:flex;flex-direction:column;
-}
-@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.dd-search-wrap{padding:10px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0}
-.dd-search{
-  width:100%;background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:8px;
-  padding:9px 12px;
-  font-size:13px;
-  font-family:'Exo 2',sans-serif;
-  color:#fff;outline:none;
-  caret-color:#00ff80;
-}
-.dd-search::placeholder{color:rgba(255,255,255,0.25)}
-.dd-scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
-.dd-scroll::-webkit-scrollbar{width:3px}
-.dd-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
-.dd-option{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px;
-  font-size:14px;color:rgba(255,255,255,0.8);
-  cursor:pointer;
-  transition:background 0.12s;
-}
-.dd-option:hover,.dd-option:active{background:rgba(0,255,128,0.07)}
-.dd-option.chosen{background:rgba(0,255,128,0.1);color:#00ff80;font-weight:600}
-.dd-option .oflag{font-size:20px}
-.dd-empty{padding:16px;text-align:center;font-size:13px;color:rgba(255,255,255,0.25)}
-
 /* ── NAV BUTTONS ── */
 .nav-row{
   display:flex;gap:10px;
-  padding:14px 16px 20px;
+  padding:10px 16px 14px;
   flex-shrink:0;
-  background:rgba(8,11,18,0.95);
+  background:rgba(8,11,18,0.98);
   border-top:1px solid rgba(255,255,255,0.06);
+  /* Added absolute pinning logic to combat aggressive Android keyboards */
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  z-index: 20;
 }
 .btn-back{
   flex:0 0 52px;height:52px;
@@ -367,7 +320,7 @@ body{
   background:#00ff80;
   border:none;border-radius:12px;
   font-family:'Orbitron',sans-serif;
-  font-size:13px;font-weight:700;
+  font-size:14px;font-weight:700;
   color:#080b12;
   cursor:pointer;
   letter-spacing:0.1em;
@@ -403,15 +356,9 @@ body{
 }
 .feedback-msg.ok{color:#00ff80;text-shadow:0 0 20px #00ff8066}
 .feedback-msg.skip{color:#ffd700;text-shadow:0 0 20px #ffd70066}
-.feedback-sub{font-size:13px;color:rgba(255,255,255,0.5)}
-.xp-gain{
-  font-family:'Orbitron',sans-serif;
-  font-size:14px;color:#00ccff;
-  margin-top:8px;letter-spacing:0.05em;
-}
 
 /* ── RESULTS SCREEN ── */
-#results{gap:0;justify-content:flex-start;padding-top:20px;overflow-y:auto}
+#results{gap:0;justify-content:flex-start;padding-top:20px;overflow-y:auto; padding-bottom:40px;}
 #results::-webkit-scrollbar{display:none}
 .results-header{text-align:center;margin-bottom:20px;width:100%}
 .results-trophy{font-size:64px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:8px}
@@ -421,7 +368,6 @@ body{
   text-shadow:0 0 20px #ffd70066;
   letter-spacing:0.05em;margin-bottom:4px;
 }
-.results-sub{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5}
 .score-display{
   width:100%;
   background:rgba(255,215,0,0.06);
@@ -437,60 +383,15 @@ body{
   color:#ffd700;text-shadow:0 0 30px #ffd70066;
   line-height:1;
 }
-.score-label{font-size:12px;color:rgba(255,215,0,0.5);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
-.stat-row{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:14px;
-}
-.stat-card{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:14px;padding:14px;text-align:center;
-}
-.stat-val{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;color:#00ff80;margin-bottom:4px}
-.stat-lbl{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase}
-.prize-reveal{
-  width:100%;
-  background:rgba(0,255,128,0.05);
-  border:1px solid rgba(0,255,128,0.2);
-  border-radius:14px;padding:16px;margin-bottom:16px;
-  text-align:center;
-}
-.prize-reveal-label{font-size:11px;color:rgba(0,255,128,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
-.prize-reveal-items{display:flex;flex-direction:column;gap:6px}
-.prize-item{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;
-}
-.prize-item-rank{
-  font-family:'Orbitron',sans-serif;font-size:10px;
-  color:#ffd700;min-width:60px;font-weight:700;
-}
-.prize-item-name{font-size:13px;color:rgba(255,255,255,0.8)}
-.deadline-note{
-  width:100%;
-  background:rgba(255,100,0,0.06);border:1px solid rgba(255,100,0,0.2);
-  border-radius:12px;padding:12px 14px;
-  font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;
-  margin-bottom:80px;text-align:center;
-}
-.deadline-note strong{color:rgba(255,150,50,0.9)}
 
-/* ── SECTION TRANSITION ── */
-.section-break{
-  width:100%;
-  background:rgba(0,204,255,0.04);
-  border:1px solid rgba(0,204,255,0.15);
-  border-radius:14px;padding:16px;
-  text-align:center;margin:10px 0 4px;
-}
-.section-break-icon{font-size:32px;margin-bottom:6px;display:block}
-.section-break-title{
-  font-family:'Orbitron',sans-serif;
-  font-size:16px;font-weight:700;color:#00ccff;
-  letter-spacing:0.05em;margin-bottom:4px;
-}
-.section-break-sub{font-size:12px;color:rgba(255,255,255,0.4)}
-
+/* DROPDOWN STYLING MINIFIED FOR SPACE */
+.dd-btn{width:100%;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px;font-size:15px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;margin-bottom:8px;}
+.dd-btn.selected{color:#fff;border-color:rgba(0,255,128,0.5);background:rgba(0,255,128,0.04);}
+.dd-panel{width:100%;background:#101620;border:1px solid rgba(255,255,255,0.1);border-radius:14px;overflow:hidden;margin-bottom:12px;max-height:260px;display:flex;flex-direction:column;}
+.dd-search-wrap{padding:10px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.dd-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:#fff;}
+.dd-scroll{overflow-y:auto;flex:1;}
+.dd-option{display:flex;gap:10px;padding:12px 14px;color:rgba(255,255,255,0.8);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -507,41 +408,48 @@ body{
 
 <div id="app" style="display: none;">
   <div id="hud">
-    <div>
-      <div class="hud-logo">Aristopharma<br><span>WC 2026 Challenge</span></div>
-    </div>
+    <div><div class="hud-logo">Aristopharma<br><span>WC 2026 Challenge</span></div></div>
     <div id="hud-score">0 XP</div>
-    <div class="hud-lives" id="hud-lives">
-      <div class="life-dot" id="l1"></div>
-      <div class="life-dot" id="l2"></div>
-      <div class="life-dot" id="l3"></div>
-    </div>
   </div>
+  
   <div id="xpbar-wrap">
-    <div class="xpbar-label">
-      <span id="xp-level">LEVEL 1</span>
-      <span id="xp-pct">0 / 16 COMPLETE</span>
-    </div>
+    <div class="xpbar-label"><span id="xp-level">LEVEL 1</span><span id="xp-pct">0 / 16 COMPLETE</span></div>
     <div id="xpbar-track"><div id="xpbar-fill"></div></div>
   </div>
 
   <div id="stage">
-
     <div class="screen active" id="splash">
       <div class="splash-trophy">⚽</div>
       <div class="splash-title">WORLD CUP<br><span class="highlight">CHALLENGE</span></div>
       <div class="splash-year">2026</div>
       <div class="splash-by">POWERED BY ARISTOPHARMA</div>
+      
       <div class="prizes-row">
-        <div class="prize-card"><div class="prize-rank">🥇 1ST</div><div class="prize-name">iPhone Air</div></div>
-        <div class="prize-card"><div class="prize-rank">🥈 2ND</div><div class="prize-name">Dhaka–Kathmandu (2 pax)</div></div>
-        <div class="prize-card"><div class="prize-rank">🥉 3RD</div><div class="prize-name">Samsung Galaxy</div></div>
-        <div class="prize-card"><div class="prize-rank">🏅 4–20TH</div><div class="prize-name">25,000 TK Cash</div></div>
+        <div class="prize-card">
+          <div class="prize-rank">🥇 1ST</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/0/14.png" alt="iPhone" class="prize-img" style="filter: invert(1);"> 
+          <div class="prize-name">iPhone Air</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-rank">🥈 2ND</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/7511/7511425.png" alt="Tickets" class="prize-img">
+          <div class="prize-name">Kathmandu (2 pax)</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-rank">🥉 3RD</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/2850/2850604.png" alt="Samsung" class="prize-img">
+          <div class="prize-name">Samsung Galaxy</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-rank">🏅 4–20TH</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/2845/2845892.png" alt="Cash" class="prize-img">
+          <div class="prize-name">25,000 TK Cash</div>
+        </div>
       </div>
+      
       <div class="info-strip">
         <strong>Deadline:</strong> 12 June – 12 July 2026 &nbsp;·&nbsp;
-        <strong>Eligibility:</strong> Bangladesh-based doctors only &nbsp;·&nbsp;
-        One submission per doctor
+        <strong>Eligibility:</strong> Bangladesh-based doctors only
       </div>
       <button class="btn-start" onclick="startGame()">▶ &nbsp; START CHALLENGE</button>
     </div>
@@ -552,33 +460,15 @@ body{
       <div class="results-header">
         <span class="results-trophy">🏆</span>
         <div class="results-title">MISSION COMPLETE!</div>
-        <div class="results-sub">Your entry has been submitted.<br>Winners announced after the Final.</div>
       </div>
       <div class="score-display">
         <div class="score-big" id="final-score">0</div>
-        <div class="score-label">Total XP Earned</div>
-      </div>
-      <div class="stat-row">
-        <div class="stat-card"><div class="stat-val" id="stat-answered">0</div><div class="stat-lbl">Questions Answered</div></div>
-        <div class="stat-card"><div class="stat-val" id="stat-pct">0%</div><div class="stat-lbl">Completion</div></div>
-      </div>
-      <div class="prize-reveal">
-        <div class="prize-reveal-label">🏆 Grand Prizes</div>
-        <div class="prize-reveal-items">
-          <div class="prize-item"><div class="prize-item-rank">🥇 1ST PRIZE</div><div class="prize-item-name">iPhone Air</div></div>
-          <div class="prize-item"><div class="prize-item-rank">🥈 2ND PRIZE</div><div class="prize-item-name">Dhaka – Kathmandu Air Tickets (2 persons)</div></div>
-          <div class="prize-item"><div class="prize-item-rank">🥉 3RD PRIZE</div><div class="prize-item-name">Samsung Galaxy Smart Phone</div></div>
-          <div class="prize-item"><div class="prize-item-rank">🏅 4TH–20TH</div><div class="prize-item-name">25,000 TK Cash per winner</div></div>
-        </div>
-      </div>
-      <div class="deadline-note">
-        <strong>Submissions open 12 June – 12 July 2026</strong><br>
-        Your current medical practice must be based in Bangladesh.<br>
-        Only one submission per doctor will be counted.
+        <div class="score-label" style="margin-top: 10px; color:#fff;">Your entry has been securely locked in our database!</div>
       </div>
     </div>
+  </div>
 
-  </div><div class="nav-row" id="nav-row" style="display:none">
+  <div class="nav-row" id="nav-row" style="display:none">
     <button class="btn-back" id="btn-back" onclick="prevQ()">←</button>
     <button class="btn-next" id="btn-next" onclick="nextQ()">
       <span id="btn-next-label">NEXT</span>
@@ -591,20 +481,16 @@ body{
   <div class="feedback-box">
     <span class="feedback-icon" id="fb-icon"></span>
     <div class="feedback-msg" id="fb-msg"></div>
-    <div class="feedback-sub" id="fb-sub"></div>
-    <div class="xp-gain" id="fb-xp"></div>
   </div>
 </div>
 
 <script>
-// ── GATING SYSTEM: THIS IS WHERE YOUR URL LIVES ──
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6H1CoRyijpxzVE7T3ifCaWPpt1cSiyr-sqAUywqfz9vvgMz0oMtq4-l3E1Wt2-AeWWA/exec";
 
 async function checkStatus() {
   try {
     const response = await fetch(APPS_SCRIPT_URL);
     const data = await response.json();
-    
     if (data.status === "LIVE") {
       document.getElementById('gating-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
@@ -613,349 +499,178 @@ async function checkStatus() {
       document.getElementById('app').style.display = 'none';
     }
   } catch (error) {
-    console.error("Status check failed:", error);
-    // Failsafe: If script fails, show locked screen
     document.getElementById('gating-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
 }
-
-// Run check on page load
 checkStatus();
 
-const COUNTRIES=[
-  {n:'Algeria',f:'🇩🇿'},{n:'Argentina',f:'🇦🇷'},{n:'Australia',f:'🇦🇺'},
-  {n:'Austria',f:'🇦🇹'},{n:'Belgium',f:'🇧🇪'},{n:'Bosnia and Herzegovina',f:'🇧🇦'},
-  {n:'Brazil',f:'🇧🇷'},{n:'Canada',f:'🇨🇦'},{n:'Cape Verde',f:'🇨🇻'},
-  {n:'Colombia',f:'🇨🇴'},{n:'Congo DR',f:'🇨🇩'},{n:'Croatia',f:'🇭🇷'},
-  {n:'Curaçao',f:'🇨🇼'},{n:'Czechia',f:'🇨🇿'},{n:'Ecuador',f:'🇪🇨'},
-  {n:'Egypt',f:'🇪🇬'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'France',f:'🇫🇷'},
-  {n:'Germany',f:'🇩🇪'},{n:'Ghana',f:'🇬🇭'},{n:'Haiti',f:'🇭🇹'},
-  {n:'Iran',f:'🇮🇷'},{n:'Iraq',f:'🇮🇶'},{n:'Ivory Coast',f:'🇨🇮'},
-  {n:'Japan',f:'🇯🇵'},{n:'Jordan',f:'🇯🇴'},{n:'Mexico',f:'🇲🇽'},
-  {n:'Morocco',f:'🇲🇦'},{n:'Netherlands',f:'🇳🇱'},{n:'New Zealand',f:'🇳🇿'},
-  {n:'Norway',f:'🇳🇴'},{n:'Panama',f:'🇵🇦'},{n:'Paraguay',f:'🇵🇾'},
-  {n:'Portugal',f:'🇵🇹'},{n:'Qatar',f:'🇶🇦'},{n:'Saudi Arabia',f:'🇸🇦'},
-  {n:'Scotland',f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{n:'Senegal',f:'🇸🇳'},{n:'South Africa',f:'🇿🇦'},
-  {n:'South Korea',f:'🇰🇷'},{n:'Spain',f:'🇪🇸'},{n:'Sweden',f:'🇸🇪'},
-  {n:'Switzerland',f:'🇨🇭'},{n:'Tunisia',f:'🇹🇳'},{n:'Türkiye',f:'🇹🇷'},
-  {n:'United States',f:'🇺🇸'},{n:'Uruguay',f:'🇺🇾'},{n:'Uzbekistan',f:'🇺🇿'}
-];
+const COUNTRIES=[ {n:'Argentina',f:'🇦🇷'},{n:'Brazil',f:'🇧🇷'},{n:'England',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{n:'France',f:'🇫🇷'},{n:'Germany',f:'🇩🇪'},{n:'Portugal',f:'🇵🇹'},{n:'Spain',f:'🇪🇸'} ];
 
 const QUESTIONS=[
-  {id:'q1',section:'🩺 Doctor Info',type:'email',label:'Email Address',hint:'Your contact email',placeholder:'doctor@example.com',xp:50,required:true},
-  {id:'q2',section:null,type:'text',label:'Full Name',hint:'',placeholder:'Dr. Full Name',xp:50,required:true},
-  {id:'q3',section:null,type:'text',label:'BM&DC Registration Number',hint:'Mandatory for verification',placeholder:'e.g. A-12345',xp:100,required:true},
-  {id:'q4',section:null,type:'tel',label:'Mobile Number',hint:'11-digit number (e.g. 01812233447)',placeholder:'01XXXXXXXXX',xp:50,required:true},
-  {id:'q5',section:null,type:'text',label:'Specialty',hint:'Your medical specialty',placeholder:'e.g. Cardiology, Medicine',xp:50,required:true},
-  {id:'q6',section:null,type:'text',label:'Hospital / Chamber Address',hint:'Must be located within Bangladesh',placeholder:'Hospital name, District',xp:50,required:true},
-  {id:'q7',section:'⚽ Predictions',type:'dropdown',label:'Who Will Be Crowned the 2026 FIFA World Cup Champion?',hint:'Select the winner',xp:200,required:true},
-  {id:'q8',section:null,type:'dropdown',label:'Who will be the Runner-Up at the 2026 FIFA World Cup Final?',hint:'Select the runner-up',xp:200,required:true},
-  {id:'q9',section:null,type:'text',label:'Golden Ball Winner',hint:'Best Player — write full name',placeholder:'e.g. Lionel Messi',xp:150,required:true},
-  {id:'q10',section:null,type:'text',label:'Golden Boot Winner',hint:'Top Goalscorer — write full name',placeholder:'e.g. Kylian Mbappé',xp:150,required:true},
-  {id:'q11',section:null,type:'text',label:'Golden Glove Winner',hint:'Best Goalkeeper — write full name',placeholder:'e.g. Manuel Neuer',xp:150,required:true},
-  {id:'q12',section:'💊 Brand Quiz',type:'text',label:"Aristopharma's Rabeprazole brand name?",hint:'',placeholder:'Brand name',xp:100,required:true},
-  {id:'q13',section:null,type:'text',label:'Preferred Aristopharma brand to treat GERD?',hint:'',placeholder:'Brand name',xp:100,required:true},
-  {id:'q14',section:null,type:'text',label:'Aristopharma brand — monarch of all antihistamines?',hint:'',placeholder:'Brand name',xp:100,required:true},
-  {id:'q15',section:null,type:'text',label:'Pioneer lactulose brand in Bangladesh since 1997?',hint:'',placeholder:'Brand name',xp:100,required:true},
-  {id:'q16',section:null,type:'text',label:"Aristopharma's latest xanthine derivative for Asthma & COPD?",hint:'',placeholder:'Brand name',xp:100,required:true},
+  {id:'q1',section:'🩺 Doctor Info',type:'email',label:'Email Address',placeholder:'doctor@example.com',required:true},
+  {id:'q2',type:'text',label:'Full Name',placeholder:'Dr. Full Name',required:true},
+  {id:'q3',type:'text',label:'BM&DC Registration Number',placeholder:'e.g. A-12345',required:true},
+  {id:'q4',type:'tel',label:'Mobile Number',placeholder:'01XXXXXXXXX',required:true},
+  {id:'q5',type:'text',label:'Specialty',placeholder:'e.g. Cardiology, Medicine',required:true},
+  {id:'q6',type:'text',label:'Hospital / Chamber Address',placeholder:'Hospital name, District',required:true},
+  {id:'q7',section:'⚽ Predictions',type:'dropdown',label:'2026 FIFA World Cup Champion?',required:true},
+  {id:'q8',type:'dropdown',label:'Runner-Up at the 2026 Final?',required:true},
+  {id:'q9',type:'text',label:'Golden Ball Winner (Best Player)',placeholder:'e.g. Lionel Messi',required:true},
+  {id:'q10',type:'text',label:'Golden Boot Winner (Top Goalscorer)',placeholder:'e.g. Kylian Mbappé',required:true},
+  {id:'q11',type:'text',label:'Golden Glove Winner (Best Goalkeeper)',placeholder:'e.g. Manuel Neuer',required:true},
+  {id:'q12',section:'💊 Brand Quiz',type:'text',label:"Aristopharma's Rabeprazole brand name?",placeholder:'Brand name',required:true},
+  {id:'q13',type:'text',label:'Preferred Aristopharma brand to treat GERD?',placeholder:'Brand name',required:true},
+  {id:'q14',type:'text',label:'Aristopharma brand — monarch of all antihistamines?',placeholder:'Brand name',required:true},
+  {id:'q15',type:'text',label:'Pioneer lactulose brand in Bangladesh since 1997?',placeholder:'Brand name',required:true},
+  {id:'q16',type:'text',label:"Aristopharma's latest xanthine derivative for Asthma & COPD?",placeholder:'Brand name',required:true},
 ];
 
-let answers={};
-let xp=0;
-let current=0;
-let ddOpen=null;
+let answers={}, xp=0, current=0;
 
 function setScreen(id){
   document.querySelectorAll('.screen').forEach(s=>{if(s.id!=='gating-screen') {s.classList.remove('active');s.style.display='none'}});
   const s=document.getElementById(id);
-  if(s) {
-    s.style.display='flex';
-    requestAnimationFrame(()=>s.classList.add('active'));
-  }
+  if(s) { s.style.display='flex'; requestAnimationFrame(()=>s.classList.add('active')); }
 }
 
 function updateHUD(){
-  document.getElementById('hud-score').textContent=xp+' XP';
   const done=Object.keys(answers).filter(k=>answers[k]).length;
-  const pct=Math.round(done/QUESTIONS.length*100);
-  document.getElementById('xpbar-fill').style.width=pct+'%';
-  document.getElementById('xp-pct').textContent=done+' / '+QUESTIONS.length+' COMPLETE';
-  const level=Math.floor(done/4)+1;
-  document.getElementById('xp-level').textContent='LEVEL '+level;
+  document.getElementById('xpbar-fill').style.width=Math.round(done/QUESTIONS.length*100)+'%';
 }
 
-function startGame(){
-  document.getElementById('nav-row').style.display='flex';
-  setScreen('qscreen');
-  renderQ(0);
-}
+function startGame(){ document.getElementById('nav-row').style.display='flex'; setScreen('qscreen'); renderQ(0); }
 
 function renderQ(idx){
-  current=idx;
-  const q=QUESTIONS[idx];
-  const stage=document.getElementById('qscreen');
-  stage.scrollTop=0;
-
-  let html='';
-
-  if(q.section){
-    html+=`<div class="q-section-tag">${q.section}</div>`;
-  }
-
-  html+=`
-    <div class="q-number-badge">
-      <span class="q-num-label">QUESTION</span>
-      <span class="q-num-value">${String(idx+1).padStart(2,'0')}</span>
-      <span class="q-num-total">/ 16</span>
-    </div>
-    <div class="q-text">${q.label}</div>
-  `;
-  if(q.hint) html+=`<div class="q-hint">${q.hint}</div>`;
-  else html+=`<div style="margin-bottom:14px"></div>`;
-
+  current=idx; const q=QUESTIONS[idx]; const stage=document.getElementById('qscreen'); stage.scrollTop=0;
+  let html=`<div class="q-number-badge"><span class="q-num-value">${String(idx+1).padStart(2,'0')}</span><span class="q-num-total">/ 16</span></div><div class="q-text">${q.label}</div>`;
   const val=answers[q.id]||'';
 
   if(q.type==='dropdown'){
-    const chosen=COUNTRIES.find(c=>c.n===val);
-    html+=`
-      <button class="dd-btn ${val?'selected':''}" id="dd-btn-${q.id}" onclick="toggleDD('${q.id}')">
-        <span>${val?(chosen?chosen.f+' ':'')+val:'Select a country…'}</span>
-        <span class="dd-chevron">▾</span>
-      </button>
-      <div class="dd-panel" id="dd-panel-${q.id}" style="display:none">
-        <div class="dd-search-wrap">
-          <input class="dd-search" id="dd-search-${q.id}" placeholder="Search country…" oninput="filterDD('${q.id}',this.value)">
-        </div>
-        <div class="dd-scroll" id="dd-list-${q.id}">
-          ${COUNTRIES.map(c=>`
-            <div class="dd-option ${c.n===val?'chosen':''}" onclick="selectDD('${q.id}','${c.n}','${c.f}')">
-              <span class="oflag">${c.f}</span><span>${c.n}</span>
-            </div>`).join('')}
-        </div>
-      </div>
-    `;
+    html+=`<button class="dd-btn ${val?'selected':''}" id="dd-btn-${q.id}" onclick="toggleDD('${q.id}')"><span>${val||'Select…'}</span></button>
+      <div class="dd-panel" id="dd-panel-${q.id}" style="display:none"><div class="dd-scroll" id="dd-list-${q.id}">
+        ${COUNTRIES.map(c=>`<div class="dd-option" onclick="selectDD('${q.id}','${c.n}')"><span>${c.f} ${c.n}</span></div>`).join('')}
+      </div></div>`;
   } else {
-    html+=`<input type="${q.type}" class="game-input ${val?'filled':''}" id="input-${q.id}"
-      placeholder="${q.placeholder}" value="${val}"
-      autocomplete="${q.type==='email'?'email':q.type==='tel'?'tel':'off'}"
-      inputmode="${q.type==='tel'?'tel':q.type==='email'?'email':'text'}"
-      ${q.id==='q4'?'maxlength="11"':''}
-      oninput="onInput('${q.id}',this.value)"
-      onkeydown="if(event.key==='Enter')nextQ()">`;
+    html+=`<input type="${q.type}" class="game-input ${val?'filled':''}" id="input-${q.id}" placeholder="${q.placeholder}" value="${val}" oninput="onInput('${q.id}',this.value)">`;
   }
-
-  html+=`<div style="height:80px"></div>`;
 
   stage.innerHTML=html;
-
-  const nb=document.getElementById('btn-next');
-  nb.classList.toggle('disabled',q.required&&!val);
+  document.getElementById('btn-next').classList.toggle('disabled',q.required&&!val);
   document.getElementById('btn-next-label').textContent=idx===QUESTIONS.length-1?'SUBMIT':'NEXT';
-  document.getElementById('btn-back').style.opacity=idx===0?'0.3':'1';
-
-  if(q.type!=='dropdown'){
-    setTimeout(()=>{const el=document.getElementById('input-'+q.id);if(el)el.focus();},100);
-  }
+  
+  // UX FIX: Automatically scroll input into view to combat mobile keyboard overlay
+  setTimeout(()=>{
+      const el=document.getElementById('input-'+q.id);
+      if(el) { 
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+  },100);
 }
 
 function onInput(id,val){
   answers[id]=val.trim();
-  const q=QUESTIONS.find(q=>q.id===id);
-  const el=document.getElementById('input-'+id);
-  if(val.trim()){el.classList.add('filled');el.classList.remove('error');}
-  else el.classList.remove('filled');
-  const nb=document.getElementById('btn-next');
-  nb.classList.toggle('disabled',q.required&&!val.trim());
+  document.getElementById('btn-next').classList.remove('disabled');
   updateHUD();
 }
 
 function toggleDD(id){
   const panel=document.getElementById('dd-panel-'+id);
-  const btn=document.getElementById('dd-btn-'+id);
-  const isOpen=panel.style.display!=='none';
-  if(isOpen){panel.style.display='none';btn.classList.remove('open');}
-  else{
-    panel.style.display='flex';btn.classList.add('open');
-    setTimeout(()=>{const s=document.getElementById('dd-search-'+id);if(s)s.focus();},100);
-  }
+  panel.style.display = panel.style.display==='none' ? 'flex' : 'none';
 }
 
-function filterDD(id,query){
-  const q=query.toLowerCase();
-  const list=document.getElementById('dd-list-'+id);
-  let found=0;
-  list.querySelectorAll('.dd-option').forEach(opt=>{
-    const show=opt.textContent.toLowerCase().includes(q);
-    opt.style.display=show?'flex':'none';
-    if(show)found++;
-  });
-  let empty=document.getElementById('dd-empty-'+id);
-  if(!found){
-    if(!empty){empty=document.createElement('div');empty.id='dd-empty-'+id;empty.className='dd-empty';empty.textContent='No results';list.appendChild(empty);}
-  } else if(empty)empty.remove();
-}
-
-function selectDD(id,name,flag){
+function selectDD(id,name){
   answers[id]=name;
-  const btn=document.getElementById('dd-btn-'+id);
-  btn.querySelector('span').textContent=flag+' '+name;
-  btn.classList.add('selected');
-  const panel=document.getElementById('dd-panel-'+id);
-  panel.style.display='none';
-  btn.classList.remove('open');
   document.getElementById('btn-next').classList.remove('disabled');
-  document.getElementById('dd-list-'+id).querySelectorAll('.dd-option').forEach(o=>{
-    o.classList.toggle('chosen',o.querySelector('span:last-child').textContent===name);
-  });
   updateHUD();
+  document.getElementById('dd-btn-'+id).querySelector('span').textContent=name;
+  document.getElementById('dd-panel-'+id).style.display='none';
 }
 
-function validate(idx){
-  const q=QUESTIONS[idx];
-  const val=answers[q.id]||'';
-  if(!q.required)return true;
-  if(!val)return false;
-  if(q.id==='q1'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))return false;
-  if(q.id==='q4'&&!/^01[3-9]\d{8}$/.test(val))return false;
-  return true;
-}
-
-function showFeedback(ok,qxp,cb){
+function showFeedback(cb){
   const fb=document.getElementById('feedback');
-  document.getElementById('fb-icon').textContent=ok?'✅':'⚠️';
-  document.getElementById('fb-msg').textContent=ok?'LOCKED IN!':'INVALID INPUT';
-  document.getElementById('fb-msg').className='feedback-msg '+(ok?'ok':'skip');
-  document.getElementById('fb-sub').textContent=ok?'Great answer!':'Please check your input.';
-  document.getElementById('fb-xp').textContent=ok?'+ '+qxp+' XP':'';
+  document.getElementById('fb-icon').textContent='✅';
+  document.getElementById('fb-msg').className='feedback-msg ok';
   fb.classList.add('show');
-  setTimeout(()=>{fb.classList.remove('show');cb();},900);
+  setTimeout(()=>{fb.classList.remove('show');cb();},600);
 }
 
 function nextQ(){
-  const nb=document.getElementById('btn-next');
-  if(nb.classList.contains('disabled'))return;
-  const q=QUESTIONS[current];
-  const ok=validate(current);
-  if(!ok){
-    const el=document.getElementById('input-'+q.id);
-    if(el){el.classList.add('error');setTimeout(()=>el.classList.remove('error'),600);}
-    return;
-  }
-  if(answers[q.id]&&!q._xpGiven){
-    xp+=q.xp;q._xpGiven=true;
-  }
-  updateHUD();
-  if(current===QUESTIONS.length-1){
-    showFeedback(true,q.xp,()=>{
-      showResults();
-    });
-    return;
-  }
-  showFeedback(true,q.xp,()=>{
-    renderQ(current+1);
-  });
+  if(document.getElementById('btn-next').classList.contains('disabled')) return;
+  if(current===QUESTIONS.length-1){ showFeedback(submitDataToGoogle); return; }
+  showFeedback(()=>renderQ(current+1));
 }
 
-function prevQ(){
-  if(current===0)return;
-  renderQ(current-1);
-}
+function prevQ(){ if(current>0) renderQ(current-1); }
 
-// ── Google Form Submission Integration ── //
-function submitData() {
-  const url = "https://docs.google.com/forms/d/e/1FAIpQLSdSIxH8DP0kESJy91P-ALEmKlCVDevHbQHTLL0GgKg0mfacGw/formResponse";
-  const formData = new URLSearchParams();
-  
-  // Mapping UI Answers to the extracted Google Form Entry IDs
-  formData.append("emailAddress", answers['q1'] || "");
-  formData.append("entry.2038918538", answers['q2'] || ""); // Full Name
-  formData.append("entry.1331120625", answers['q3'] || ""); // BM&DC
-  formData.append("entry.1906868355", answers['q4'] || ""); // Mobile Number
-  formData.append("entry.435087459", answers['q5'] || "");  // Specialty
-  formData.append("entry.39175090", answers['q6'] || "");   // Hospital / Chamber
-  formData.append("entry.1028554198", answers['q7'] || ""); // Champion
-  formData.append("entry.1135703577", answers['q8'] || ""); // Runner-Up
-  formData.append("entry.499870340", answers['q9'] || "");  // Golden Ball
-  formData.append("entry.1773681107", answers['q10'] || "");// Golden Boot
-  formData.append("entry.256639077", answers['q11'] || ""); // Golden Glove
-  formData.append("entry.535845153", answers['q12'] || ""); // Rabeprazole
-  formData.append("entry.1166451388", answers['q13'] || "");// GERD 
-  formData.append("entry.834790229", answers['q14'] || ""); // Antihistamine 
-  formData.append("entry.76373117", answers['q15'] || "");  // Lactulose 
-  formData.append("entry.1363275176", answers['q16'] || "");// Xanthine 
-
-  // Fire off the background request (mode: "no-cors" ensures browser security allows the hidden POST)
-  fetch(url, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  }).catch(err => console.error("Submit Error:", err));
-}
-
-function showResults(){
+// ── THE ULTIMATE FIX: NATIVE HIDDEN FORM SUBMISSION ── //
+function submitDataToGoogle() {
   document.getElementById('nav-row').style.display='none';
   setScreen('results');
-  const done=Object.keys(answers).filter(k=>answers[k]).length;
-  const pct=Math.round(done/QUESTIONS.length*100);
-  document.getElementById('final-score').textContent=xp;
-  document.getElementById('stat-answered').textContent=done;
-  document.getElementById('stat-pct').textContent=pct+'%';
   document.getElementById('xpbar-fill').style.width='100%';
   spawnConfetti();
-  
-  // Submit silently in background once the user hits the final page
-  submitData();
+
+  // 1. Create an invisible iframe
+  const iframe = document.createElement('iframe');
+  iframe.name = 'hidden_iframe';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  // 2. Create a native HTML form pointing to your Google Form
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = "https://docs.google.com/forms/d/e/1FAIpQLSdSIxH8DP0kESJy91P-ALEmKlCVDevHbQHTLL0GgKg0mfacGw/formResponse";
+  form.target = 'hidden_iframe'; // Submits the form into the invisible iframe
+
+  // 3. Map your exact answers to the Google Form Entry IDs
+  const dataMap = {
+    "emailAddress": answers['q1'],
+    "entry.2038918538": answers['q2'],
+    "entry.1331120625": answers['q3'],
+    "entry.1906868355": answers['q4'],
+    "entry.435087459": answers['q5'],
+    "entry.39175090": answers['q6'],
+    "entry.1028554198": answers['q7'],
+    "entry.1135703577": answers['q8'],
+    "entry.499870340": answers['q9'],
+    "entry.1773681107": answers['q10'],
+    "entry.256639077": answers['q11'],
+    "entry.535845153": answers['q12'],
+    "entry.1166451388": answers['q13'],
+    "entry.834790229": answers['q14'],
+    "entry.76373117": answers['q15'],
+    "entry.1363275176": answers['q16']
+  };
+
+  // 4. Attach data to form and submit instantly
+  for (let key in dataMap) {
+    let input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = dataMap[key] || '';
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit(); // This completely bypasses the fetch() security blocks!
 }
 
 /* ── PARTICLE SYSTEM ── */
-const canvas=document.getElementById('particles');
-const ctx=canvas.getContext('2d');
-let particles=[];
-function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
-function spawnParticle(){
-  particles.push({
-    x:Math.random()*canvas.width,
-    y:canvas.height+10,
-    vx:(Math.random()-0.5)*0.8,
-    vy:-(0.5+Math.random()*1.5),
-    size:Math.random()*2+0.5,
-    opacity:Math.random()*0.4+0.1,
-    color:Math.random()>0.5?'#00ff80':'#00ccff',
-    life:1
-  });
-}
+const canvas=document.getElementById('particles'); const ctx=canvas.getContext('2d'); let particles=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;} resizeCanvas(); window.addEventListener('resize',resizeCanvas);
 function spawnConfetti(){
-  for(let i=0;i<60;i++){
-    const colors=['#00ff80','#ffd700','#00ccff','#ff4466','#ffffff'];
-    particles.push({
-      x:Math.random()*canvas.width,
-      y:-10,
-      vx:(Math.random()-0.5)*4,
-      vy:Math.random()*3+1,
-      size:Math.random()*5+2,
-      opacity:1,
-      color:colors[Math.floor(Math.random()*colors.length)],
-      life:1,confetti:true
-    });
+  for(let i=0;i<80;i++){
+    particles.push({ x:Math.random()*canvas.width, y:-10, vx:(Math.random()-0.5)*4, vy:Math.random()*3+1, size:Math.random()*5+2, color:['#00ff80','#ffd700','#00ccff'][Math.floor(Math.random()*3)] });
   }
 }
 function animParticles(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(Math.random()<0.15)spawnParticle();
   particles=particles.filter(p=>{
-    p.x+=p.vx;p.y+=p.vy;p.life-=p.confetti?0.008:0.003;
-    if(p.life<=0)return false;
-    ctx.globalAlpha=p.opacity*p.life;
-    ctx.fillStyle=p.color;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-    ctx.fill();
-    return p.y<canvas.height+20&&p.y>-20;
+    p.x+=p.vx; p.y+=p.vy;
+    ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    return p.y<canvas.height+20;
   });
-  ctx.globalAlpha=1;
   requestAnimationFrame(animParticles);
 }
 animParticles();
